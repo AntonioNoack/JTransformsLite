@@ -2,12 +2,12 @@
  * JTransforms
  * Copyright (c) 2007 onward, Piotr Wendykier
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer. 
+ *    list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
@@ -26,23 +26,24 @@
  * ***** END LICENSE BLOCK ***** */
 package org.jtransforms.utils;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import static org.apache.commons.math3.util.FastMath.*;
 import pl.edu.icm.jlargearrays.ConcurrencyUtils;
 import pl.edu.icm.jlargearrays.DoubleLargeArray;
 import pl.edu.icm.jlargearrays.FloatLargeArray;
 import pl.edu.icm.jlargearrays.LongLargeArray;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.apache.commons.math3.util.FastMath.*;
+
 /**
  * Static utility methods.
- *  
+ *
  * @author Piotr Wendykier (piotr.wendykier@gmail.com)
  */
-public class CommonUtils
-{
+public class CommonUtils {
 
     private static long THREADS_BEGIN_N_1D_FFT_2THREADS = 8192;
 
@@ -54,8 +55,7 @@ public class CommonUtils
 
     private static boolean useLargeArrays = false;
 
-    public CommonUtils()
-    {
+    public CommonUtils() {
     }
 
     /**
@@ -64,8 +64,7 @@ public class CommonUtils
      *
      * @param millis the length of time to sleep in milliseconds
      */
-    public static void sleep(long millis)
-    {
+    public static void sleep(long millis) {
         try {
             Thread.sleep(millis);
         } catch (InterruptedException e) {
@@ -79,8 +78,7 @@ public class CommonUtils
      *
      * @return the minimal size of 1D data for which two threads are used
      */
-    public static long getThreadsBeginN_1D_FFT_2Threads()
-    {
+    public static long getThreadsBeginN_1D_FFT_2Threads() {
         return THREADS_BEGIN_N_1D_FFT_2THREADS;
     }
 
@@ -89,8 +87,7 @@ public class CommonUtils
      *
      * @return the minimal size of 1D data for which four threads are used
      */
-    public static long getThreadsBeginN_1D_FFT_4Threads()
-    {
+    public static long getThreadsBeginN_1D_FFT_4Threads() {
         return THREADS_BEGIN_N_1D_FFT_4THREADS;
     }
 
@@ -99,8 +96,7 @@ public class CommonUtils
      *
      * @return the minimal size of 2D data for which threads are used
      */
-    public static long getThreadsBeginN_2D()
-    {
+    public static long getThreadsBeginN_2D() {
         return THREADS_BEGIN_N_2D;
     }
 
@@ -109,8 +105,7 @@ public class CommonUtils
      *
      * @return the minimal size of 3D data for which threads are used
      */
-    public static long getThreadsBeginN_3D()
-    {
+    public static long getThreadsBeginN_3D() {
         return THREADS_BEGIN_N_3D;
     }
 
@@ -119,8 +114,7 @@ public class CommonUtils
      *
      * @param n the minimal size of 1D data for which two threads are used
      */
-    public static void setThreadsBeginN_1D_FFT_2Threads(long n)
-    {
+    public static void setThreadsBeginN_1D_FFT_2Threads(long n) {
         if (n < 1024) {
             THREADS_BEGIN_N_1D_FFT_2THREADS = 1024;
         } else {
@@ -133,8 +127,7 @@ public class CommonUtils
      *
      * @param n the minimal size of 1D data for which four threads are used
      */
-    public static void setThreadsBeginN_1D_FFT_4Threads(long n)
-    {
+    public static void setThreadsBeginN_1D_FFT_4Threads(long n) {
         if (n < 1024) {
             THREADS_BEGIN_N_1D_FFT_4THREADS = 1024;
         } else {
@@ -147,8 +140,7 @@ public class CommonUtils
      *
      * @param n the minimal size of 2D data for which threads are used
      */
-    public static void setThreadsBeginN_2D(long n)
-    {
+    public static void setThreadsBeginN_2D(long n) {
         if (n < 4096) {
             THREADS_BEGIN_N_2D = 4096;
         } else {
@@ -161,8 +153,7 @@ public class CommonUtils
      *
      * @param n the minimal size of 3D data for which threads are used
      */
-    public static void setThreadsBeginN_3D(long n)
-    {
+    public static void setThreadsBeginN_3D(long n) {
         THREADS_BEGIN_N_3D = n;
     }
 
@@ -170,8 +161,7 @@ public class CommonUtils
      * Resets the minimal size of 1D data for which two and four threads are
      * used.
      */
-    public static void resetThreadsBeginN_FFT()
-    {
+    public static void resetThreadsBeginN_FFT() {
         THREADS_BEGIN_N_1D_FFT_2THREADS = 8192;
         THREADS_BEGIN_N_1D_FFT_4THREADS = 65536;
     }
@@ -179,29 +169,26 @@ public class CommonUtils
     /**
      * Resets the minimal size of 2D and 3D data for which threads are used.
      */
-    public static void resetThreadsBeginN()
-    {
+    public static void resetThreadsBeginN() {
         THREADS_BEGIN_N_2D = 65536;
         THREADS_BEGIN_N_3D = 65536;
     }
 
     /**
      * Returns the value of useLargeArrays variable.
-     *  
+     *
      * @return the value of useLargeArrays variable
      */
-    public static boolean isUseLargeArrays()
-    {
+    public static boolean isUseLargeArrays() {
         return useLargeArrays;
     }
 
     /**
      * Sets the value of useLargeArrays variable.
-     *  
+     *
      * @param useLargeArrays the value of useLargeArrays variable
      */
-    public static void setUseLargeArrays(boolean useLargeArrays)
-    {
+    public static void setUseLargeArrays(boolean useLargeArrays) {
         CommonUtils.useLargeArrays = useLargeArrays;
     }
 
@@ -209,11 +196,9 @@ public class CommonUtils
      * Returns the closest power-of-two number greater than or equal to x.
      *
      * @param x input value
-     *
      * @return the closest power-of-two number greater than or equal to x
      */
-    public static int nextPow2(int x)
-    {
+    public static int nextPow2(int x) {
         if (x < 1) {
             throw new IllegalArgumentException("x must be greater or equal 1");
         }
@@ -232,11 +217,9 @@ public class CommonUtils
      * Returns the closest power-of-two number greater than or equal to x.
      *
      * @param x input value
-     *
      * @return the closest power-of-two number greater than or equal to x
      */
-    public static long nextPow2(long x)
-    {
+    public static long nextPow2(long x) {
         if (x < 1) {
             throw new IllegalArgumentException("x must be greater or equal 1");
         }
@@ -256,11 +239,9 @@ public class CommonUtils
      * Returns the closest power-of-two number less than or equal to x.
      *
      * @param x input value
-     *
      * @return the closest power-of-two number less then or equal to x
      */
-    public static int prevPow2(int x)
-    {
+    public static int prevPow2(int x) {
         if (x < 1) {
             throw new IllegalArgumentException("x must be greater or equal 1");
         }
@@ -271,11 +252,9 @@ public class CommonUtils
      * Returns the closest power-of-two number less than or equal to x.
      *
      * @param x input value
-     *
      * @return the closest power-of-two number less then or equal to x
      */
-    public static long prevPow2(long x)
-    {
+    public static long prevPow2(long x) {
         if (x < 1) {
             throw new IllegalArgumentException("x must be greater or equal 1");
         }
@@ -286,11 +265,9 @@ public class CommonUtils
      * Checks if x is a power-of-two number.
      *
      * @param x input value
-     *
      * @return true if x is a power-of-two number
      */
-    public static boolean isPowerOf2(int x)
-    {
+    public static boolean isPowerOf2(int x) {
         if (x <= 0) {
             return false;
         } else {
@@ -302,11 +279,9 @@ public class CommonUtils
      * Checks if x is a power-of-two number.
      *
      * @param x input value
-     *
      * @return true if x is a power-of-two number
      */
-    public static boolean isPowerOf2(long x)
-    {
+    public static boolean isPowerOf2(long x) {
         if (x <= 0) {
             return false;
         } else {
@@ -314,8 +289,7 @@ public class CommonUtils
         }
     }
 
-    public static long getReminder(long n, int factors[])
-    {
+    public static long getReminder(long n, int factors[]) {
         long reminder = n;
 
         if (n <= 0) {
@@ -331,8 +305,7 @@ public class CommonUtils
         return reminder;
     }
 
-    public static void makeipt(int nw, int[] ip)
-    {
+    public static void makeipt(int nw, int[] ip) {
         int j, l, m, m2, p, q;
 
         ip[2] = 0;
@@ -350,8 +323,7 @@ public class CommonUtils
         }
     }
 
-    public static void makeipt(long nw, LongLargeArray ipl)
-    {
+    public static void makeipt(long nw, LongLargeArray ipl) {
         long j, l, m, m2, p, q;
 
         ipl.setLong(2, 0);
@@ -369,8 +341,7 @@ public class CommonUtils
         }
     }
 
-    public static void makewt(int nw, int[] ip, double[] w)
-    {
+    public static void makewt(int nw, int[] ip, double[] w) {
         int j, nwh, nw0, nw1;
         double delta, wn4r, wk1r, wk1i, wk3r, wk3i;
         double delta2, deltaj, deltaj3;
@@ -434,8 +405,7 @@ public class CommonUtils
         }
     }
 
-    public static void makewt(long nw, LongLargeArray ipl, DoubleLargeArray wl)
-    {
+    public static void makewt(long nw, LongLargeArray ipl, DoubleLargeArray wl) {
         long j, nwh, nw0, nw1;
         double delta, wn4r, wk1r, wk1i, wk3r, wk3i;
         double delta2, deltaj, deltaj3;
@@ -499,8 +469,7 @@ public class CommonUtils
         }
     }
 
-    public static void makect(int nc, double[] c, int startc, int[] ip)
-    {
+    public static void makect(int nc, double[] c, int startc, int[] ip) {
         int j, nch;
         double delta, deltaj;
 
@@ -518,8 +487,7 @@ public class CommonUtils
         }
     }
 
-    public static void makect(long nc, DoubleLargeArray c, long startc, LongLargeArray ipl)
-    {
+    public static void makect(long nc, DoubleLargeArray c, long startc, LongLargeArray ipl) {
         long j, nch;
         double delta, deltaj;
 
@@ -537,8 +505,7 @@ public class CommonUtils
         }
     }
 
-    public static void makect(int nc, float[] c, int startc, int[] ip)
-    {
+    public static void makect(int nc, float[] c, int startc, int[] ip) {
         int j, nch;
         float delta, deltaj;
 
@@ -556,8 +523,7 @@ public class CommonUtils
         }
     }
 
-    public static void makect(long nc, FloatLargeArray c, long startc, LongLargeArray ipl)
-    {
+    public static void makect(long nc, FloatLargeArray c, long startc, LongLargeArray ipl) {
         long j, nch;
         float delta, deltaj;
 
@@ -575,8 +541,7 @@ public class CommonUtils
         }
     }
 
-    public static void makewt(int nw, int[] ip, float[] w)
-    {
+    public static void makewt(int nw, int[] ip, float[] w) {
         int j, nwh, nw0, nw1;
         float delta, wn4r, wk1r, wk1i, wk3r, wk3i;
         float delta2, deltaj, deltaj3;
@@ -640,8 +605,7 @@ public class CommonUtils
         }
     }
 
-    public static void makewt(long nw, LongLargeArray ipl, FloatLargeArray wl)
-    {
+    public static void makewt(long nw, LongLargeArray ipl, FloatLargeArray wl) {
         long j, nwh, nw0, nw1;
         float delta, wn4r, wk1r, wk1i, wk3r, wk3i;
         float delta2, deltaj, deltaj3;
@@ -705,8 +669,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftfsub(int n, double[] a, int offa, int[] ip, int nw, double[] w)
-    {
+    public static void cftfsub(int n, double[] a, int offa, int[] ip, int nw, double[] w) {
         if (n > 8) {
             if (n > 32) {
                 cftf1st(n, a, offa, w, nw - (n >> 2));
@@ -734,8 +697,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftfsub(long n, DoubleLargeArray a, long offa, LongLargeArray ip, long nw, DoubleLargeArray w)
-    {
+    public static void cftfsub(long n, DoubleLargeArray a, long offa, LongLargeArray ip, long nw, DoubleLargeArray w) {
         if (n > 8) {
             if (n > 32) {
                 cftf1st(n, a, offa, w, nw - (n >> 2l));
@@ -763,8 +725,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftbsub(int n, double[] a, int offa, int[] ip, int nw, double[] w)
-    {
+    public static void cftbsub(int n, double[] a, int offa, int[] ip, int nw, double[] w) {
         if (n > 8) {
             if (n > 32) {
                 cftb1st(n, a, offa, w, nw - (n >> 2));
@@ -792,8 +753,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftbsub(long n, DoubleLargeArray a, long offa, LongLargeArray ip, long nw, DoubleLargeArray w)
-    {
+    public static void cftbsub(long n, DoubleLargeArray a, long offa, LongLargeArray ip, long nw, DoubleLargeArray w) {
         if (n > 8) {
             if (n > 32) {
                 cftb1st(n, a, offa, w, nw - (n >> 2l));
@@ -821,8 +781,7 @@ public class CommonUtils
         }
     }
 
-    public static void bitrv2(int n, int[] ip, double[] a, int offa)
-    {
+    public static void bitrv2(int n, int[] ip, double[] a, int offa) {
         int j1, k1, l, m, nh, nm;
         double xr, xi, yr, yi;
         int idx0, idx1, idx2;
@@ -1234,8 +1193,7 @@ public class CommonUtils
         }
     }
 
-    public static void bitrv2l(long n, LongLargeArray ip, DoubleLargeArray a, long offa)
-    {
+    public static void bitrv2l(long n, LongLargeArray ip, DoubleLargeArray a, long offa) {
         long j1, k1, l, m, nh, nm;
         double xr, xi, yr, yi;
         long idx0, idx1, idx2;
@@ -1647,8 +1605,7 @@ public class CommonUtils
         }
     }
 
-    public static void bitrv2conj(int n, int[] ip, double[] a, int offa)
-    {
+    public static void bitrv2conj(int n, int[] ip, double[] a, int offa) {
         int j1, k1, l, m, nh, nm;
         double xr, xi, yr, yi;
         int idx0, idx1, idx2;
@@ -2068,8 +2025,7 @@ public class CommonUtils
         }
     }
 
-    public static void bitrv2conj(long n, LongLargeArray ip, DoubleLargeArray a, long offa)
-    {
+    public static void bitrv2conj(long n, LongLargeArray ip, DoubleLargeArray a, long offa) {
         long j1, k1, l, m, nh, nm;
         double xr, xi, yr, yi;
         long idx0, idx1, idx2;
@@ -2489,8 +2445,7 @@ public class CommonUtils
         }
     }
 
-    public static void bitrv216(double[] a, int offa)
-    {
+    public static void bitrv216(double[] a, int offa) {
         double x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i, x5r, x5i, x7r, x7i, x8r, x8i, x10r, x10i, x11r, x11i, x12r, x12i, x13r, x13i, x14r, x14i;
 
         x1r = a[offa + 2];
@@ -2543,8 +2498,7 @@ public class CommonUtils
         a[offa + 29] = x7i;
     }
 
-    public static void bitrv216(DoubleLargeArray a, long offa)
-    {
+    public static void bitrv216(DoubleLargeArray a, long offa) {
         double x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i, x5r, x5i, x7r, x7i, x8r, x8i, x10r, x10i, x11r, x11i, x12r, x12i, x13r, x13i, x14r, x14i;
 
         x1r = a.getDouble(offa + 2);
@@ -2597,8 +2551,7 @@ public class CommonUtils
         a.setDouble(offa + 29, x7i);
     }
 
-    public static void bitrv216neg(double[] a, int offa)
-    {
+    public static void bitrv216neg(double[] a, int offa) {
         double x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i, x5r, x5i, x6r, x6i, x7r, x7i, x8r, x8i, x9r, x9i, x10r, x10i, x11r, x11i, x12r, x12i, x13r, x13i, x14r, x14i, x15r, x15i;
 
         x1r = a[offa + 2];
@@ -2663,8 +2616,7 @@ public class CommonUtils
         a[offa + 31] = x8i;
     }
 
-    public static void bitrv216neg(DoubleLargeArray a, long offa)
-    {
+    public static void bitrv216neg(DoubleLargeArray a, long offa) {
         double x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i, x5r, x5i, x6r, x6i, x7r, x7i, x8r, x8i, x9r, x9i, x10r, x10i, x11r, x11i, x12r, x12i, x13r, x13i, x14r, x14i, x15r, x15i;
 
         x1r = a.getDouble(offa + 2);
@@ -2729,8 +2681,7 @@ public class CommonUtils
         a.setDouble(offa + 31, x8i);
     }
 
-    public static void bitrv208(double[] a, int offa)
-    {
+    public static void bitrv208(double[] a, int offa) {
         double x1r, x1i, x3r, x3i, x4r, x4i, x6r, x6i;
 
         x1r = a[offa + 2];
@@ -2751,8 +2702,7 @@ public class CommonUtils
         a[offa + 13] = x3i;
     }
 
-    public static void bitrv208(DoubleLargeArray a, long offa)
-    {
+    public static void bitrv208(DoubleLargeArray a, long offa) {
         double x1r, x1i, x3r, x3i, x4r, x4i, x6r, x6i;
 
         x1r = a.getDouble(offa + 2);
@@ -2773,8 +2723,7 @@ public class CommonUtils
         a.setDouble(offa + 13, x3i);
     }
 
-    public static void bitrv208neg(double[] a, int offa)
-    {
+    public static void bitrv208neg(double[] a, int offa) {
         double x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i, x5r, x5i, x6r, x6i, x7r, x7i;
 
         x1r = a[offa + 2];
@@ -2807,8 +2756,7 @@ public class CommonUtils
         a[offa + 15] = x4i;
     }
 
-    public static void bitrv208neg(DoubleLargeArray a, long offa)
-    {
+    public static void bitrv208neg(DoubleLargeArray a, long offa) {
         double x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i, x5r, x5i, x6r, x6i, x7r, x7i;
 
         x1r = a.getDouble(offa + 2);
@@ -2841,8 +2789,7 @@ public class CommonUtils
         a.setDouble(offa + 15, x4i);
     }
 
-    public static void cftf1st(int n, double[] a, int offa, double[] w, int startw)
-    {
+    public static void cftf1st(int n, double[] a, int offa, double[] w, int startw) {
         int j0, j1, j2, j3, k, m, mh;
         double wn4r, csc1, csc3, wk1r, wk1i, wk3r, wk3i, wd1r, wd1i, wd3r, wd3i;
         double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i;
@@ -3060,8 +3007,7 @@ public class CommonUtils
         a[idx3 + 3] = wk3i * x0i - wk3r * x0r;
     }
 
-    public static void cftf1st(long n, DoubleLargeArray a, long offa, DoubleLargeArray w, long startw)
-    {
+    public static void cftf1st(long n, DoubleLargeArray a, long offa, DoubleLargeArray w, long startw) {
         long j0, j1, j2, j3, k, m, mh;
         double wn4r, csc1, csc3, wk1r, wk1i, wk3r, wk3i, wd1r, wd1i, wd3r, wd3i;
         double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i;
@@ -3279,8 +3225,7 @@ public class CommonUtils
         a.setDouble(idx3 + 3, wk3i * x0i - wk3r * x0r);
     }
 
-    public static void cftb1st(int n, double[] a, int offa, double[] w, int startw)
-    {
+    public static void cftb1st(int n, double[] a, int offa, double[] w, int startw) {
         int j0, j1, j2, j3, k, m, mh;
         double wn4r, csc1, csc3, wk1r, wk1i, wk3r, wk3i, wd1r, wd1i, wd3r, wd3i;
         double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i;
@@ -3499,8 +3444,7 @@ public class CommonUtils
         a[idx3 + 3] = wk3i * x0i - wk3r * x0r;
     }
 
-    public static void cftb1st(long n, DoubleLargeArray a, long offa, DoubleLargeArray w, long startw)
-    {
+    public static void cftb1st(long n, DoubleLargeArray a, long offa, DoubleLargeArray w, long startw) {
         long j0, j1, j2, j3, k, m, mh;
         double wn4r, csc1, csc3, wk1r, wk1i, wk3r, wk3i, wd1r, wd1i, wd3r, wd3i;
         double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i;
@@ -3719,8 +3663,7 @@ public class CommonUtils
         a.setDouble(idx3 + 3, wk3i * x0i - wk3r * x0r);
     }
 
-    public static void cftrec4_th(final int n, final double[] a, final int offa, final int nw, final double[] w)
-    {
+    public static void cftrec4_th(final int n, final double[] a, final int offa, final int nw, final double[] w) {
         int i;
         int idiv4, m, nthreads;
         int idx = 0;
@@ -3737,10 +3680,8 @@ public class CommonUtils
         for (i = 0; i < nthreads; i++) {
             final int firstIdx = offa + i * m;
             if (i != idiv4) {
-                futures[idx++] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[idx++] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         int isplt, j, k, m;
                         int idx1 = firstIdx + mf;
                         m = n;
@@ -3759,10 +3700,8 @@ public class CommonUtils
                     }
                 });
             } else {
-                futures[idx++] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[idx++] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         int isplt, j, k, m;
                         int idx1 = firstIdx + mf;
                         k = 1;
@@ -3794,8 +3733,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftrec4_th(final long n, final DoubleLargeArray a, final long offa, final long nw, final DoubleLargeArray w)
-    {
+    public static void cftrec4_th(final long n, final DoubleLargeArray a, final long offa, final long nw, final DoubleLargeArray w) {
         int i, idx = 0;
         int idiv4, nthreads;
         long m;
@@ -3812,10 +3750,8 @@ public class CommonUtils
         for (i = 0; i < nthreads; i++) {
             final long firstIdx = offa + i * m;
             if (i != idiv4) {
-                futures[idx++] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[idx++] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         long isplt, j, k, m;
                         long idx1 = firstIdx + mf;
                         m = n;
@@ -3834,10 +3770,8 @@ public class CommonUtils
                     }
                 });
             } else {
-                futures[idx++] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[idx++] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         long isplt, j, k, m;
                         long idx1 = firstIdx + mf;
                         k = 1;
@@ -3869,8 +3803,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftrec4(int n, double[] a, int offa, int nw, double[] w)
-    {
+    public static void cftrec4(int n, double[] a, int offa, int nw, double[] w) {
         int isplt, j, k, m;
 
         m = n;
@@ -3889,8 +3822,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftrec4(long n, DoubleLargeArray a, long offa, long nw, DoubleLargeArray w)
-    {
+    public static void cftrec4(long n, DoubleLargeArray a, long offa, long nw, DoubleLargeArray w) {
         long isplt, j, k, m;
 
         m = n;
@@ -3909,8 +3841,7 @@ public class CommonUtils
         }
     }
 
-    public static int cfttree(int n, int j, int k, double[] a, int offa, int nw, double[] w)
-    {
+    public static int cfttree(int n, int j, int k, double[] a, int offa, int nw, double[] w) {
         int i, isplt, m;
         int idx1 = offa - n;
         if ((k & 3) != 0) {
@@ -3942,8 +3873,7 @@ public class CommonUtils
         return isplt;
     }
 
-    public static long cfttree(long n, long j, long k, DoubleLargeArray a, long offa, long nw, DoubleLargeArray w)
-    {
+    public static long cfttree(long n, long j, long k, DoubleLargeArray a, long offa, long nw, DoubleLargeArray w) {
         long i, isplt, m;
         long idx1 = offa - n;
         if ((k & 3) != 0) {
@@ -3975,8 +3905,7 @@ public class CommonUtils
         return isplt;
     }
 
-    public static void cftleaf(int n, int isplt, double[] a, int offa, int nw, double[] w)
-    {
+    public static void cftleaf(int n, int isplt, double[] a, int offa, int nw, double[] w) {
         if (n == 512) {
             cftmdl1(128, a, offa, w, nw - 64);
             cftf161(a, offa, w, nw - 8);
@@ -4032,8 +3961,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftleaf(long n, long isplt, DoubleLargeArray a, long offa, long nw, DoubleLargeArray w)
-    {
+    public static void cftleaf(long n, long isplt, DoubleLargeArray a, long offa, long nw, DoubleLargeArray w) {
         if (n == 512) {
             cftmdl1(128, a, offa, w, nw - 64);
             cftf161(a, offa, w, nw - 8);
@@ -4089,8 +4017,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftmdl1(int n, double[] a, int offa, double[] w, int startw)
-    {
+    public static void cftmdl1(int n, double[] a, int offa, double[] w, int startw) {
         int j0, j1, j2, j3, k, m, mh;
         double wn4r, wk1r, wk1i, wk3r, wk3i;
         double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
@@ -4215,8 +4142,7 @@ public class CommonUtils
         a[idx3 + 1] = -wn4r * (x0i - x0r);
     }
 
-    public static void cftmdl1(long n, DoubleLargeArray a, long offa, DoubleLargeArray w, long startw)
-    {
+    public static void cftmdl1(long n, DoubleLargeArray a, long offa, DoubleLargeArray w, long startw) {
         long j0, j1, j2, j3, k, m, mh;
         double wn4r, wk1r, wk1i, wk3r, wk3i;
         double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
@@ -4341,8 +4267,7 @@ public class CommonUtils
         a.setDouble(idx3 + 1, -wn4r * (x0i - x0r));
     }
 
-    public static void cftmdl2(int n, double[] a, int offa, double[] w, int startw)
-    {
+    public static void cftmdl2(int n, double[] a, int offa, double[] w, int startw) {
         int j0, j1, j2, j3, k, kr, m, mh;
         double wn4r, wk1r, wk1i, wk3r, wk3i, wd1r, wd1i, wd3r, wd3i;
         double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y2r, y2i;
@@ -4492,8 +4417,7 @@ public class CommonUtils
         a[idx3 + 1] = y0i + y2i;
     }
 
-    public static void cftmdl2(long n, DoubleLargeArray a, long offa, DoubleLargeArray w, long startw)
-    {
+    public static void cftmdl2(long n, DoubleLargeArray a, long offa, DoubleLargeArray w, long startw) {
         long j0, j1, j2, j3, k, kr, m, mh;
         double wn4r, wk1r, wk1i, wk3r, wk3i, wd1r, wd1i, wd3r, wd3i;
         double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y2r, y2i;
@@ -4643,8 +4567,7 @@ public class CommonUtils
         a.setDouble(idx3 + 1, y0i + y2i);
     }
 
-    public static void cftfx41(int n, double[] a, int offa, int nw, double[] w)
-    {
+    public static void cftfx41(int n, double[] a, int offa, int nw, double[] w) {
         if (n == 128) {
             cftf161(a, offa, w, nw - 8);
             cftf162(a, offa + 32, w, nw - 32);
@@ -4658,8 +4581,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftfx41(long n, DoubleLargeArray a, long offa, long nw, DoubleLargeArray w)
-    {
+    public static void cftfx41(long n, DoubleLargeArray a, long offa, long nw, DoubleLargeArray w) {
         if (n == 128) {
             cftf161(a, offa, w, nw - 8);
             cftf162(a, offa + 32, w, nw - 32);
@@ -4673,8 +4595,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftf161(double[] a, int offa, double[] w, int startw)
-    {
+    public static void cftf161(double[] a, int offa, double[] w, int startw) {
         double wn4r, wk1r, wk1i, x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i, y8r, y8i, y9r, y9i, y10r, y10i, y11r, y11i, y12r, y12i, y13r, y13i, y14r, y14i, y15r, y15i;
 
         wn4r = w[startw + 1];
@@ -4827,8 +4748,7 @@ public class CommonUtils
         a[offa + 7] = x1i - x3r;
     }
 
-    public static void cftf161(DoubleLargeArray a, long offa, DoubleLargeArray w, long startw)
-    {
+    public static void cftf161(DoubleLargeArray a, long offa, DoubleLargeArray w, long startw) {
         double wn4r, wk1r, wk1i, x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i, y8r, y8i, y9r, y9i, y10r, y10i, y11r, y11i, y12r, y12i, y13r, y13i, y14r, y14i, y15r, y15i;
 
         wn4r = w.getDouble(startw + 1);
@@ -4981,8 +4901,7 @@ public class CommonUtils
         a.setDouble(offa + 7, x1i - x3r);
     }
 
-    public static void cftf162(double[] a, int offa, double[] w, int startw)
-    {
+    public static void cftf162(double[] a, int offa, double[] w, int startw) {
         double wn4r, wk1r, wk1i, wk2r, wk2i, wk3r, wk3i, x0r, x0i, x1r, x1i, x2r, x2i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i, y8r, y8i, y9r, y9i, y10r, y10i, y11r, y11i, y12r, y12i, y13r, y13i, y14r, y14i, y15r, y15i;
 
         wn4r = w[startw + 1];
@@ -5158,8 +5077,7 @@ public class CommonUtils
         a[offa + 31] = x1i - x2r;
     }
 
-    public static void cftf162(DoubleLargeArray a, long offa, DoubleLargeArray w, long startw)
-    {
+    public static void cftf162(DoubleLargeArray a, long offa, DoubleLargeArray w, long startw) {
         double wn4r, wk1r, wk1i, wk2r, wk2i, wk3r, wk3i, x0r, x0i, x1r, x1i, x2r, x2i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i, y8r, y8i, y9r, y9i, y10r, y10i, y11r, y11i, y12r, y12i, y13r, y13i, y14r, y14i, y15r, y15i;
 
         wn4r = w.getDouble(startw + 1);
@@ -5335,8 +5253,7 @@ public class CommonUtils
         a.setDouble(offa + 31, x1i - x2r);
     }
 
-    public static void cftf081(double[] a, int offa, double[] w, int startw)
-    {
+    public static void cftf081(double[] a, int offa, double[] w, int startw) {
         double wn4r, x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i;
 
         wn4r = w[startw + 1];
@@ -5394,8 +5311,7 @@ public class CommonUtils
         a[offa + 7] = y2i - y6r;
     }
 
-    public static void cftf081(DoubleLargeArray a, long offa, DoubleLargeArray w, long startw)
-    {
+    public static void cftf081(DoubleLargeArray a, long offa, DoubleLargeArray w, long startw) {
         double wn4r, x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i;
 
         wn4r = w.getDouble(startw + 1);
@@ -5453,8 +5369,7 @@ public class CommonUtils
         a.setDouble(offa + 7, y2i - y6r);
     }
 
-    public static void cftf082(double[] a, int offa, double[] w, int startw)
-    {
+    public static void cftf082(double[] a, int offa, double[] w, int startw) {
         double wn4r, wk1r, wk1i, x0r, x0i, x1r, x1i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i;
 
         wn4r = w[startw + 1];
@@ -5522,8 +5437,7 @@ public class CommonUtils
         a[offa + 15] = x0i - x1r;
     }
 
-    public static void cftf082(DoubleLargeArray a, long offa, DoubleLargeArray w, long startw)
-    {
+    public static void cftf082(DoubleLargeArray a, long offa, DoubleLargeArray w, long startw) {
         double wn4r, wk1r, wk1i, x0r, x0i, x1r, x1i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i;
 
         wn4r = w.getDouble(startw + 1);
@@ -5591,8 +5505,7 @@ public class CommonUtils
         a.setDouble(offa + 15, x0i - x1r);
     }
 
-    public static void cftf040(double[] a, int offa)
-    {
+    public static void cftf040(double[] a, int offa) {
         double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
         x0r = a[offa] + a[offa + 4];
@@ -5613,8 +5526,7 @@ public class CommonUtils
         a[offa + 7] = x1i - x3r;
     }
 
-    public static void cftf040(DoubleLargeArray a, long offa)
-    {
+    public static void cftf040(DoubleLargeArray a, long offa) {
         double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
         x0r = a.getDouble(offa) + a.getDouble(offa + 4);
@@ -5635,8 +5547,7 @@ public class CommonUtils
         a.setDouble(offa + 7, x1i - x3r);
     }
 
-    public static void cftb040(double[] a, int offa)
-    {
+    public static void cftb040(double[] a, int offa) {
         double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
         x0r = a[offa] + a[offa + 4];
@@ -5657,8 +5568,7 @@ public class CommonUtils
         a[offa + 7] = x1i + x3r;
     }
 
-    public static void cftb040(DoubleLargeArray a, long offa)
-    {
+    public static void cftb040(DoubleLargeArray a, long offa) {
         double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
         x0r = a.getDouble(offa) + a.getDouble(offa + 4);
@@ -5679,8 +5589,7 @@ public class CommonUtils
         a.setDouble(offa + 7, x1i + x3r);
     }
 
-    public static void cftx020(double[] a, int offa)
-    {
+    public static void cftx020(double[] a, int offa) {
         double x0r, x0i;
         x0r = a[offa] - a[offa + 2];
         x0i = -a[offa + 1] + a[offa + 3];
@@ -5690,8 +5599,7 @@ public class CommonUtils
         a[offa + 3] = x0i;
     }
 
-    public static void cftx020(DoubleLargeArray a, long offa)
-    {
+    public static void cftx020(DoubleLargeArray a, long offa) {
         double x0r, x0i;
         x0r = a.getDouble(offa) - a.getDouble(offa + 2);
         x0i = -a.getDouble(offa + 1) + a.getDouble(offa + 3);
@@ -5701,8 +5609,7 @@ public class CommonUtils
         a.setDouble(offa + 3, x0i);
     }
 
-    public static void cftxb020(double[] a, int offa)
-    {
+    public static void cftxb020(double[] a, int offa) {
         double x0r, x0i;
 
         x0r = a[offa] - a[offa + 2];
@@ -5713,8 +5620,7 @@ public class CommonUtils
         a[offa + 3] = x0i;
     }
 
-    public static void cftxb020(DoubleLargeArray a, long offa)
-    {
+    public static void cftxb020(DoubleLargeArray a, long offa) {
         double x0r, x0i;
 
         x0r = a.getDouble(offa) - a.getDouble(offa + 2);
@@ -5725,8 +5631,7 @@ public class CommonUtils
         a.setDouble(offa + 3, x0i);
     }
 
-    public static void cftxc020(double[] a, int offa)
-    {
+    public static void cftxc020(double[] a, int offa) {
         double x0r, x0i;
         x0r = a[offa] - a[offa + 2];
         x0i = a[offa + 1] + a[offa + 3];
@@ -5736,8 +5641,7 @@ public class CommonUtils
         a[offa + 3] = x0i;
     }
 
-    public static void cftxc020(DoubleLargeArray a, long offa)
-    {
+    public static void cftxc020(DoubleLargeArray a, long offa) {
         double x0r, x0i;
         x0r = a.getDouble(offa) - a.getDouble(offa + 2);
         x0i = a.getDouble(offa + 1) + a.getDouble(offa + 3);
@@ -5747,8 +5651,7 @@ public class CommonUtils
         a.setDouble(offa + 3, x0i);
     }
 
-    public static void rftfsub(int n, double[] a, int offa, int nc, double[] c, int startc)
-    {
+    public static void rftfsub(int n, double[] a, int offa, int nc, double[] c, int startc) {
         int k, kk, ks, m;
         double wkr, wki, xr, xi, yr, yi;
         int idx1, idx2;
@@ -5775,8 +5678,7 @@ public class CommonUtils
         a[offa + m + 1] = -a[offa + m + 1];
     }
 
-    public static void rftfsub(long n, DoubleLargeArray a, long offa, long nc, DoubleLargeArray c, long startc)
-    {
+    public static void rftfsub(long n, DoubleLargeArray a, long offa, long nc, DoubleLargeArray c, long startc) {
         long k, kk, ks, m;
         double wkr, wki, xr, xi, yr, yi;
         long idx1, idx2;
@@ -5803,8 +5705,7 @@ public class CommonUtils
         a.setDouble(offa + m + 1, -a.getDouble(offa + m + 1));
     }
 
-    public static void rftbsub(int n, double[] a, int offa, int nc, double[] c, int startc)
-    {
+    public static void rftbsub(int n, double[] a, int offa, int nc, double[] c, int startc) {
         int k, kk, ks, m;
         double wkr, wki, xr, xi, yr, yi;
         int idx1, idx2;
@@ -5830,8 +5731,7 @@ public class CommonUtils
         }
     }
 
-    public static void rftbsub(long n, DoubleLargeArray a, long offa, long nc, DoubleLargeArray c, long startc)
-    {
+    public static void rftbsub(long n, DoubleLargeArray a, long offa, long nc, DoubleLargeArray c, long startc) {
         long k, kk, ks, m;
         double wkr, wki, xr, xi, yr, yi;
         long idx1, idx2;
@@ -5857,8 +5757,7 @@ public class CommonUtils
         }
     }
 
-    public static void dctsub(int n, double[] a, int offa, int nc, double[] c, int startc)
-    {
+    public static void dctsub(int n, double[] a, int offa, int nc, double[] c, int startc) {
         int k, kk, ks, m;
         double wkr, wki, xr;
         int idx0, idx1, idx2;
@@ -5881,8 +5780,7 @@ public class CommonUtils
         a[offa + m] *= c[startc];
     }
 
-    public static void dctsub(long n, DoubleLargeArray a, long offa, long nc, DoubleLargeArray c, long startc)
-    {
+    public static void dctsub(long n, DoubleLargeArray a, long offa, long nc, DoubleLargeArray c, long startc) {
         long k, kk, ks, m;
         double wkr, wki, xr;
         long idx0, idx1, idx2;
@@ -5905,8 +5803,7 @@ public class CommonUtils
         a.setDouble(offa + m, a.getDouble(offa + m) * c.getDouble(startc));
     }
 
-    public static void cftfsub(int n, float[] a, int offa, int[] ip, int nw, float[] w)
-    {
+    public static void cftfsub(int n, float[] a, int offa, int[] ip, int nw, float[] w) {
         if (n > 8) {
             if (n > 32) {
                 cftf1st(n, a, offa, w, nw - (n >> 2));
@@ -5934,8 +5831,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftfsub(long n, FloatLargeArray a, long offa, LongLargeArray ip, long nw, FloatLargeArray w)
-    {
+    public static void cftfsub(long n, FloatLargeArray a, long offa, LongLargeArray ip, long nw, FloatLargeArray w) {
         if (n > 8) {
             if (n > 32) {
                 cftf1st(n, a, offa, w, nw - (n >> 2l));
@@ -5963,8 +5859,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftbsub(int n, float[] a, int offa, int[] ip, int nw, float[] w)
-    {
+    public static void cftbsub(int n, float[] a, int offa, int[] ip, int nw, float[] w) {
         if (n > 8) {
             if (n > 32) {
                 cftb1st(n, a, offa, w, nw - (n >> 2));
@@ -5992,8 +5887,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftbsub(long n, FloatLargeArray a, long offa, LongLargeArray ip, long nw, FloatLargeArray w)
-    {
+    public static void cftbsub(long n, FloatLargeArray a, long offa, LongLargeArray ip, long nw, FloatLargeArray w) {
         if (n > 8) {
             if (n > 32) {
                 cftb1st(n, a, offa, w, nw - (n >> 2l));
@@ -6021,8 +5915,7 @@ public class CommonUtils
         }
     }
 
-    public static void bitrv2(int n, int[] ip, float[] a, int offa)
-    {
+    public static void bitrv2(int n, int[] ip, float[] a, int offa) {
         int j1, k1, l, m, nh, nm;
         float xr, xi, yr, yi;
         int idx0, idx1, idx2;
@@ -6434,8 +6327,7 @@ public class CommonUtils
         }
     }
 
-    public static void bitrv2l(long n, LongLargeArray ip, FloatLargeArray a, long offa)
-    {
+    public static void bitrv2l(long n, LongLargeArray ip, FloatLargeArray a, long offa) {
         long j1, k1, l, m, nh, nm;
         float xr, xi, yr, yi;
         long idx0, idx1, idx2;
@@ -6847,8 +6739,7 @@ public class CommonUtils
         }
     }
 
-    public static void bitrv2conj(int n, int[] ip, float[] a, int offa)
-    {
+    public static void bitrv2conj(int n, int[] ip, float[] a, int offa) {
         int j1, k1, l, m, nh, nm;
         float xr, xi, yr, yi;
         int idx0, idx1, idx2;
@@ -7268,8 +7159,7 @@ public class CommonUtils
         }
     }
 
-    public static void bitrv2conj(long n, LongLargeArray ip, FloatLargeArray a, long offa)
-    {
+    public static void bitrv2conj(long n, LongLargeArray ip, FloatLargeArray a, long offa) {
         long j1, k1, l, m, nh, nm;
         float xr, xi, yr, yi;
         long idx0, idx1, idx2;
@@ -7689,8 +7579,7 @@ public class CommonUtils
         }
     }
 
-    public static void bitrv216(float[] a, int offa)
-    {
+    public static void bitrv216(float[] a, int offa) {
         float x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i, x5r, x5i, x7r, x7i, x8r, x8i, x10r, x10i, x11r, x11i, x12r, x12i, x13r, x13i, x14r, x14i;
 
         x1r = a[offa + 2];
@@ -7743,8 +7632,7 @@ public class CommonUtils
         a[offa + 29] = x7i;
     }
 
-    public static void bitrv216(FloatLargeArray a, long offa)
-    {
+    public static void bitrv216(FloatLargeArray a, long offa) {
         float x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i, x5r, x5i, x7r, x7i, x8r, x8i, x10r, x10i, x11r, x11i, x12r, x12i, x13r, x13i, x14r, x14i;
 
         x1r = a.getFloat(offa + 2);
@@ -7797,8 +7685,7 @@ public class CommonUtils
         a.setFloat(offa + 29, x7i);
     }
 
-    public static void bitrv216neg(float[] a, int offa)
-    {
+    public static void bitrv216neg(float[] a, int offa) {
         float x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i, x5r, x5i, x6r, x6i, x7r, x7i, x8r, x8i, x9r, x9i, x10r, x10i, x11r, x11i, x12r, x12i, x13r, x13i, x14r, x14i, x15r, x15i;
 
         x1r = a[offa + 2];
@@ -7863,8 +7750,7 @@ public class CommonUtils
         a[offa + 31] = x8i;
     }
 
-    public static void bitrv216neg(FloatLargeArray a, long offa)
-    {
+    public static void bitrv216neg(FloatLargeArray a, long offa) {
         float x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i, x5r, x5i, x6r, x6i, x7r, x7i, x8r, x8i, x9r, x9i, x10r, x10i, x11r, x11i, x12r, x12i, x13r, x13i, x14r, x14i, x15r, x15i;
 
         x1r = a.getFloat(offa + 2);
@@ -7929,8 +7815,7 @@ public class CommonUtils
         a.setFloat(offa + 31, x8i);
     }
 
-    public static void bitrv208(float[] a, int offa)
-    {
+    public static void bitrv208(float[] a, int offa) {
         float x1r, x1i, x3r, x3i, x4r, x4i, x6r, x6i;
 
         x1r = a[offa + 2];
@@ -7951,8 +7836,7 @@ public class CommonUtils
         a[offa + 13] = x3i;
     }
 
-    public static void bitrv208(FloatLargeArray a, long offa)
-    {
+    public static void bitrv208(FloatLargeArray a, long offa) {
         float x1r, x1i, x3r, x3i, x4r, x4i, x6r, x6i;
 
         x1r = a.getFloat(offa + 2);
@@ -7973,8 +7857,7 @@ public class CommonUtils
         a.setFloat(offa + 13, x3i);
     }
 
-    public static void bitrv208neg(float[] a, int offa)
-    {
+    public static void bitrv208neg(float[] a, int offa) {
         float x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i, x5r, x5i, x6r, x6i, x7r, x7i;
 
         x1r = a[offa + 2];
@@ -8007,8 +7890,7 @@ public class CommonUtils
         a[offa + 15] = x4i;
     }
 
-    public static void bitrv208neg(FloatLargeArray a, long offa)
-    {
+    public static void bitrv208neg(FloatLargeArray a, long offa) {
         float x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i, x5r, x5i, x6r, x6i, x7r, x7i;
 
         x1r = a.getFloat(offa + 2);
@@ -8041,8 +7923,7 @@ public class CommonUtils
         a.setFloat(offa + 15, x4i);
     }
 
-    public static void cftf1st(int n, float[] a, int offa, float[] w, int startw)
-    {
+    public static void cftf1st(int n, float[] a, int offa, float[] w, int startw) {
         int j0, j1, j2, j3, k, m, mh;
         float wn4r, csc1, csc3, wk1r, wk1i, wk3r, wk3i, wd1r, wd1i, wd3r, wd3i;
         float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i;
@@ -8260,8 +8141,7 @@ public class CommonUtils
         a[idx3 + 3] = wk3i * x0i - wk3r * x0r;
     }
 
-    public static void cftf1st(long n, FloatLargeArray a, long offa, FloatLargeArray w, long startw)
-    {
+    public static void cftf1st(long n, FloatLargeArray a, long offa, FloatLargeArray w, long startw) {
         long j0, j1, j2, j3, k, m, mh;
         float wn4r, csc1, csc3, wk1r, wk1i, wk3r, wk3i, wd1r, wd1i, wd3r, wd3i;
         float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i;
@@ -8479,8 +8359,7 @@ public class CommonUtils
         a.setFloat(idx3 + 3, wk3i * x0i - wk3r * x0r);
     }
 
-    public static void cftb1st(int n, float[] a, int offa, float[] w, int startw)
-    {
+    public static void cftb1st(int n, float[] a, int offa, float[] w, int startw) {
         int j0, j1, j2, j3, k, m, mh;
         float wn4r, csc1, csc3, wk1r, wk1i, wk3r, wk3i, wd1r, wd1i, wd3r, wd3i;
         float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i;
@@ -8699,8 +8578,7 @@ public class CommonUtils
         a[idx3 + 3] = wk3i * x0i - wk3r * x0r;
     }
 
-    public static void cftb1st(long n, FloatLargeArray a, long offa, FloatLargeArray w, long startw)
-    {
+    public static void cftb1st(long n, FloatLargeArray a, long offa, FloatLargeArray w, long startw) {
         long j0, j1, j2, j3, k, m, mh;
         float wn4r, csc1, csc3, wk1r, wk1i, wk3r, wk3i, wd1r, wd1i, wd3r, wd3i;
         float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i;
@@ -8919,8 +8797,7 @@ public class CommonUtils
         a.setFloat(idx3 + 3, wk3i * x0i - wk3r * x0r);
     }
 
-    public static void cftrec4_th(final int n, final float[] a, final int offa, final int nw, final float[] w)
-    {
+    public static void cftrec4_th(final int n, final float[] a, final int offa, final int nw, final float[] w) {
         int i;
         int idiv4, m, nthreads;
         int idx = 0;
@@ -8937,10 +8814,8 @@ public class CommonUtils
         for (i = 0; i < nthreads; i++) {
             final int firstIdx = offa + i * m;
             if (i != idiv4) {
-                futures[idx++] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[idx++] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         int isplt, j, k, m;
                         int idx1 = firstIdx + mf;
                         m = n;
@@ -8959,10 +8834,8 @@ public class CommonUtils
                     }
                 });
             } else {
-                futures[idx++] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[idx++] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         int isplt, j, k, m;
                         int idx1 = firstIdx + mf;
                         k = 1;
@@ -8994,8 +8867,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftrec4_th(final long n, final FloatLargeArray a, final long offa, final long nw, final FloatLargeArray w)
-    {
+    public static void cftrec4_th(final long n, final FloatLargeArray a, final long offa, final long nw, final FloatLargeArray w) {
         int i, idx = 0;
         int idiv4, nthreads;
         long m;
@@ -9012,10 +8884,8 @@ public class CommonUtils
         for (i = 0; i < nthreads; i++) {
             final long firstIdx = offa + i * m;
             if (i != idiv4) {
-                futures[idx++] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[idx++] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         long isplt, j, k, m;
                         long idx1 = firstIdx + mf;
                         m = n;
@@ -9034,10 +8904,8 @@ public class CommonUtils
                     }
                 });
             } else {
-                futures[idx++] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[idx++] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         long isplt, j, k, m;
                         long idx1 = firstIdx + mf;
                         k = 1;
@@ -9069,8 +8937,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftrec4(int n, float[] a, int offa, int nw, float[] w)
-    {
+    public static void cftrec4(int n, float[] a, int offa, int nw, float[] w) {
         int isplt, j, k, m;
 
         m = n;
@@ -9089,8 +8956,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftrec4(long n, FloatLargeArray a, long offa, long nw, FloatLargeArray w)
-    {
+    public static void cftrec4(long n, FloatLargeArray a, long offa, long nw, FloatLargeArray w) {
         long isplt, j, k, m;
 
         m = n;
@@ -9109,8 +8975,7 @@ public class CommonUtils
         }
     }
 
-    public static int cfttree(int n, int j, int k, float[] a, int offa, int nw, float[] w)
-    {
+    public static int cfttree(int n, int j, int k, float[] a, int offa, int nw, float[] w) {
         int i, isplt, m;
         int idx1 = offa - n;
         if ((k & 3) != 0) {
@@ -9142,8 +9007,7 @@ public class CommonUtils
         return isplt;
     }
 
-    public static long cfttree(long n, long j, long k, FloatLargeArray a, long offa, long nw, FloatLargeArray w)
-    {
+    public static long cfttree(long n, long j, long k, FloatLargeArray a, long offa, long nw, FloatLargeArray w) {
         long i, isplt, m;
         long idx1 = offa - n;
         if ((k & 3) != 0) {
@@ -9175,8 +9039,7 @@ public class CommonUtils
         return isplt;
     }
 
-    public static void cftleaf(int n, int isplt, float[] a, int offa, int nw, float[] w)
-    {
+    public static void cftleaf(int n, int isplt, float[] a, int offa, int nw, float[] w) {
         if (n == 512) {
             cftmdl1(128, a, offa, w, nw - 64);
             cftf161(a, offa, w, nw - 8);
@@ -9232,8 +9095,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftleaf(long n, long isplt, FloatLargeArray a, long offa, long nw, FloatLargeArray w)
-    {
+    public static void cftleaf(long n, long isplt, FloatLargeArray a, long offa, long nw, FloatLargeArray w) {
         if (n == 512) {
             cftmdl1(128, a, offa, w, nw - 64);
             cftf161(a, offa, w, nw - 8);
@@ -9289,8 +9151,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftmdl1(int n, float[] a, int offa, float[] w, int startw)
-    {
+    public static void cftmdl1(int n, float[] a, int offa, float[] w, int startw) {
         int j0, j1, j2, j3, k, m, mh;
         float wn4r, wk1r, wk1i, wk3r, wk3i;
         float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
@@ -9415,8 +9276,7 @@ public class CommonUtils
         a[idx3 + 1] = -wn4r * (x0i - x0r);
     }
 
-    public static void cftmdl1(long n, FloatLargeArray a, long offa, FloatLargeArray w, long startw)
-    {
+    public static void cftmdl1(long n, FloatLargeArray a, long offa, FloatLargeArray w, long startw) {
         long j0, j1, j2, j3, k, m, mh;
         float wn4r, wk1r, wk1i, wk3r, wk3i;
         float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
@@ -9541,8 +9401,7 @@ public class CommonUtils
         a.setFloat(idx3 + 1, -wn4r * (x0i - x0r));
     }
 
-    public static void cftmdl2(int n, float[] a, int offa, float[] w, int startw)
-    {
+    public static void cftmdl2(int n, float[] a, int offa, float[] w, int startw) {
         int j0, j1, j2, j3, k, kr, m, mh;
         float wn4r, wk1r, wk1i, wk3r, wk3i, wd1r, wd1i, wd3r, wd3i;
         float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y2r, y2i;
@@ -9692,8 +9551,7 @@ public class CommonUtils
         a[idx3 + 1] = y0i + y2i;
     }
 
-    public static void cftmdl2(long n, FloatLargeArray a, long offa, FloatLargeArray w, long startw)
-    {
+    public static void cftmdl2(long n, FloatLargeArray a, long offa, FloatLargeArray w, long startw) {
         long j0, j1, j2, j3, k, kr, m, mh;
         float wn4r, wk1r, wk1i, wk3r, wk3i, wd1r, wd1i, wd3r, wd3i;
         float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y2r, y2i;
@@ -9843,8 +9701,7 @@ public class CommonUtils
         a.setFloat(idx3 + 1, y0i + y2i);
     }
 
-    public static void cftfx41(int n, float[] a, int offa, int nw, float[] w)
-    {
+    public static void cftfx41(int n, float[] a, int offa, int nw, float[] w) {
         if (n == 128) {
             cftf161(a, offa, w, nw - 8);
             cftf162(a, offa + 32, w, nw - 32);
@@ -9858,8 +9715,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftfx41(long n, FloatLargeArray a, long offa, long nw, FloatLargeArray w)
-    {
+    public static void cftfx41(long n, FloatLargeArray a, long offa, long nw, FloatLargeArray w) {
         if (n == 128) {
             cftf161(a, offa, w, nw - 8);
             cftf162(a, offa + 32, w, nw - 32);
@@ -9873,8 +9729,7 @@ public class CommonUtils
         }
     }
 
-    public static void cftf161(float[] a, int offa, float[] w, int startw)
-    {
+    public static void cftf161(float[] a, int offa, float[] w, int startw) {
         float wn4r, wk1r, wk1i, x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i, y8r, y8i, y9r, y9i, y10r, y10i, y11r, y11i, y12r, y12i, y13r, y13i, y14r, y14i, y15r, y15i;
 
         wn4r = w[startw + 1];
@@ -10027,8 +9882,7 @@ public class CommonUtils
         a[offa + 7] = x1i - x3r;
     }
 
-    public static void cftf161(FloatLargeArray a, long offa, FloatLargeArray w, long startw)
-    {
+    public static void cftf161(FloatLargeArray a, long offa, FloatLargeArray w, long startw) {
         float wn4r, wk1r, wk1i, x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i, y8r, y8i, y9r, y9i, y10r, y10i, y11r, y11i, y12r, y12i, y13r, y13i, y14r, y14i, y15r, y15i;
 
         wn4r = w.getFloat(startw + 1);
@@ -10181,8 +10035,7 @@ public class CommonUtils
         a.setFloat(offa + 7, x1i - x3r);
     }
 
-    public static void cftf162(float[] a, int offa, float[] w, int startw)
-    {
+    public static void cftf162(float[] a, int offa, float[] w, int startw) {
         float wn4r, wk1r, wk1i, wk2r, wk2i, wk3r, wk3i, x0r, x0i, x1r, x1i, x2r, x2i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i, y8r, y8i, y9r, y9i, y10r, y10i, y11r, y11i, y12r, y12i, y13r, y13i, y14r, y14i, y15r, y15i;
 
         wn4r = w[startw + 1];
@@ -10358,8 +10211,7 @@ public class CommonUtils
         a[offa + 31] = x1i - x2r;
     }
 
-    public static void cftf162(FloatLargeArray a, long offa, FloatLargeArray w, long startw)
-    {
+    public static void cftf162(FloatLargeArray a, long offa, FloatLargeArray w, long startw) {
         float wn4r, wk1r, wk1i, wk2r, wk2i, wk3r, wk3i, x0r, x0i, x1r, x1i, x2r, x2i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i, y8r, y8i, y9r, y9i, y10r, y10i, y11r, y11i, y12r, y12i, y13r, y13i, y14r, y14i, y15r, y15i;
 
         wn4r = w.getFloat(startw + 1);
@@ -10535,8 +10387,7 @@ public class CommonUtils
         a.setFloat(offa + 31, x1i - x2r);
     }
 
-    public static void cftf081(float[] a, int offa, float[] w, int startw)
-    {
+    public static void cftf081(float[] a, int offa, float[] w, int startw) {
         float wn4r, x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i;
 
         wn4r = w[startw + 1];
@@ -10594,8 +10445,7 @@ public class CommonUtils
         a[offa + 7] = y2i - y6r;
     }
 
-    public static void cftf081(FloatLargeArray a, long offa, FloatLargeArray w, long startw)
-    {
+    public static void cftf081(FloatLargeArray a, long offa, FloatLargeArray w, long startw) {
         float wn4r, x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i;
 
         wn4r = w.getFloat(startw + 1);
@@ -10653,8 +10503,7 @@ public class CommonUtils
         a.setFloat(offa + 7, y2i - y6r);
     }
 
-    public static void cftf082(float[] a, int offa, float[] w, int startw)
-    {
+    public static void cftf082(float[] a, int offa, float[] w, int startw) {
         float wn4r, wk1r, wk1i, x0r, x0i, x1r, x1i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i;
 
         wn4r = w[startw + 1];
@@ -10722,8 +10571,7 @@ public class CommonUtils
         a[offa + 15] = x0i - x1r;
     }
 
-    public static void cftf082(FloatLargeArray a, long offa, FloatLargeArray w, long startw)
-    {
+    public static void cftf082(FloatLargeArray a, long offa, FloatLargeArray w, long startw) {
         float wn4r, wk1r, wk1i, x0r, x0i, x1r, x1i, y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i, y4r, y4i, y5r, y5i, y6r, y6i, y7r, y7i;
 
         wn4r = w.getFloat(startw + 1);
@@ -10791,8 +10639,7 @@ public class CommonUtils
         a.setFloat(offa + 15, x0i - x1r);
     }
 
-    public static void cftf040(float[] a, int offa)
-    {
+    public static void cftf040(float[] a, int offa) {
         float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
         x0r = a[offa] + a[offa + 4];
@@ -10813,8 +10660,7 @@ public class CommonUtils
         a[offa + 7] = x1i - x3r;
     }
 
-    public static void cftf040(FloatLargeArray a, long offa)
-    {
+    public static void cftf040(FloatLargeArray a, long offa) {
         float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
         x0r = a.getFloat(offa) + a.getFloat(offa + 4);
@@ -10835,8 +10681,7 @@ public class CommonUtils
         a.setFloat(offa + 7, x1i - x3r);
     }
 
-    public static void cftb040(float[] a, int offa)
-    {
+    public static void cftb040(float[] a, int offa) {
         float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
         x0r = a[offa] + a[offa + 4];
@@ -10857,8 +10702,7 @@ public class CommonUtils
         a[offa + 7] = x1i + x3r;
     }
 
-    public static void cftb040(FloatLargeArray a, long offa)
-    {
+    public static void cftb040(FloatLargeArray a, long offa) {
         float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
         x0r = a.getFloat(offa) + a.getFloat(offa + 4);
@@ -10879,8 +10723,7 @@ public class CommonUtils
         a.setFloat(offa + 7, x1i + x3r);
     }
 
-    public static void cftx020(float[] a, int offa)
-    {
+    public static void cftx020(float[] a, int offa) {
         float x0r, x0i;
         x0r = a[offa] - a[offa + 2];
         x0i = -a[offa + 1] + a[offa + 3];
@@ -10890,8 +10733,7 @@ public class CommonUtils
         a[offa + 3] = x0i;
     }
 
-    public static void cftx020(FloatLargeArray a, long offa)
-    {
+    public static void cftx020(FloatLargeArray a, long offa) {
         float x0r, x0i;
         x0r = a.getFloat(offa) - a.getFloat(offa + 2);
         x0i = -a.getFloat(offa + 1) + a.getFloat(offa + 3);
@@ -10901,8 +10743,7 @@ public class CommonUtils
         a.setFloat(offa + 3, x0i);
     }
 
-    public static void cftxb020(float[] a, int offa)
-    {
+    public static void cftxb020(float[] a, int offa) {
         float x0r, x0i;
 
         x0r = a[offa] - a[offa + 2];
@@ -10913,8 +10754,7 @@ public class CommonUtils
         a[offa + 3] = x0i;
     }
 
-    public static void cftxb020(FloatLargeArray a, long offa)
-    {
+    public static void cftxb020(FloatLargeArray a, long offa) {
         float x0r, x0i;
 
         x0r = a.getFloat(offa) - a.getFloat(offa + 2);
@@ -10925,8 +10765,7 @@ public class CommonUtils
         a.setFloat(offa + 3, x0i);
     }
 
-    public static void cftxc020(float[] a, int offa)
-    {
+    public static void cftxc020(float[] a, int offa) {
         float x0r, x0i;
         x0r = a[offa] - a[offa + 2];
         x0i = a[offa + 1] + a[offa + 3];
@@ -10936,8 +10775,7 @@ public class CommonUtils
         a[offa + 3] = x0i;
     }
 
-    public static void cftxc020(FloatLargeArray a, long offa)
-    {
+    public static void cftxc020(FloatLargeArray a, long offa) {
         float x0r, x0i;
         x0r = a.getFloat(offa) - a.getFloat(offa + 2);
         x0i = a.getFloat(offa + 1) + a.getFloat(offa + 3);
@@ -10947,8 +10785,7 @@ public class CommonUtils
         a.setFloat(offa + 3, x0i);
     }
 
-    public static void rftfsub(int n, float[] a, int offa, int nc, float[] c, int startc)
-    {
+    public static void rftfsub(int n, float[] a, int offa, int nc, float[] c, int startc) {
         int k, kk, ks, m;
         float wkr, wki, xr, xi, yr, yi;
         int idx1, idx2;
@@ -10975,8 +10812,7 @@ public class CommonUtils
         a[offa + m + 1] = -a[offa + m + 1];
     }
 
-    public static void rftfsub(long n, FloatLargeArray a, long offa, long nc, FloatLargeArray c, long startc)
-    {
+    public static void rftfsub(long n, FloatLargeArray a, long offa, long nc, FloatLargeArray c, long startc) {
         long k, kk, ks, m;
         float wkr, wki, xr, xi, yr, yi;
         long idx1, idx2;
@@ -11003,8 +10839,7 @@ public class CommonUtils
         a.setFloat(offa + m + 1, -a.getFloat(offa + m + 1));
     }
 
-    public static void rftbsub(int n, float[] a, int offa, int nc, float[] c, int startc)
-    {
+    public static void rftbsub(int n, float[] a, int offa, int nc, float[] c, int startc) {
         int k, kk, ks, m;
         float wkr, wki, xr, xi, yr, yi;
         int idx1, idx2;
@@ -11030,8 +10865,7 @@ public class CommonUtils
         }
     }
 
-    public static void rftbsub(long n, FloatLargeArray a, long offa, long nc, FloatLargeArray c, long startc)
-    {
+    public static void rftbsub(long n, FloatLargeArray a, long offa, long nc, FloatLargeArray c, long startc) {
         long k, kk, ks, m;
         float wkr, wki, xr, xi, yr, yi;
         long idx1, idx2;
@@ -11057,8 +10891,7 @@ public class CommonUtils
         }
     }
 
-    public static void dctsub(int n, float[] a, int offa, int nc, float[] c, int startc)
-    {
+    public static void dctsub(int n, float[] a, int offa, int nc, float[] c, int startc) {
         int k, kk, ks, m;
         float wkr, wki, xr;
         int idx0, idx1, idx2;
@@ -11081,8 +10914,7 @@ public class CommonUtils
         a[offa + m] *= c[startc];
     }
 
-    public static void dctsub(long n, FloatLargeArray a, long offa, long nc, FloatLargeArray c, long startc)
-    {
+    public static void dctsub(long n, FloatLargeArray a, long offa, long nc, FloatLargeArray c, long startc) {
         long k, kk, ks, m;
         float wkr, wki, xr;
         long idx0, idx1, idx2;
@@ -11105,8 +10937,7 @@ public class CommonUtils
         a.setFloat(offa + m, a.getFloat(offa + m) * c.getFloat(startc));
     }
 
-    public static void scale(final int n, final double m, final double[] a, final int offa, boolean complex)
-    {
+    public static void scale(final int n, final double m, final double[] a, final int offa, boolean complex) {
         int nthreads = ConcurrencyUtils.getNumberOfThreads();
         int n2;
         if (complex) {
@@ -11121,10 +10952,8 @@ public class CommonUtils
             for (int i = 0; i < nthreads; i++) {
                 final int firstIdx = offa + i * k;
                 final int lastIdx = (i == (nthreads - 1)) ? offa + n2 : firstIdx + k;
-                futures[i] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[i] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int i = firstIdx; i < lastIdx; i++) {
                             a[i] *= m;
                         }
@@ -11149,8 +10978,7 @@ public class CommonUtils
         }
     }
 
-    public static void scale(final long nl, final double m, final DoubleLargeArray a, long offa, boolean complex)
-    {
+    public static void scale(final long nl, final double m, final DoubleLargeArray a, long offa, boolean complex) {
         int nthreads = ConcurrencyUtils.getNumberOfThreads();
         long n2;
         if (complex) {
@@ -11164,11 +10992,9 @@ public class CommonUtils
             for (int i = 0; i < nthreads; i++) {
                 final long firstIdx = offa + i * k;
                 final long lastIdx = (i == (nthreads - 1)) ? offa + n2 : firstIdx + k;
-                futures[i] = ConcurrencyUtils.submit(new Runnable()
-                {
+                futures[i] = ConcurrencyUtils.submit(new Runnable() {
 
-                    public void run()
-                    {
+                    public void run() {
                         for (long i = firstIdx; i < lastIdx; i++) {
                             a.setDouble(i, a.getDouble(i) * m);
                         }
@@ -11191,8 +11017,7 @@ public class CommonUtils
         }
     }
 
-    public static void scale(final int n, final float m, final float[] a, final int offa, boolean complex)
-    {
+    public static void scale(final int n, final float m, final float[] a, final int offa, boolean complex) {
         int nthreads = ConcurrencyUtils.getNumberOfThreads();
         int n2;
         if (complex) {
@@ -11207,10 +11032,8 @@ public class CommonUtils
             for (int i = 0; i < nthreads; i++) {
                 final int firstIdx = offa + i * k;
                 final int lastIdx = (i == (nthreads - 1)) ? offa + n2 : firstIdx + k;
-                futures[i] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[i] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int i = firstIdx; i < lastIdx; i++) {
                             a[i] *= m;
                         }
@@ -11235,8 +11058,7 @@ public class CommonUtils
         }
     }
 
-    public static void scale(final long nl, final float m, final FloatLargeArray a, long offa, boolean complex)
-    {
+    public static void scale(final long nl, final float m, final FloatLargeArray a, long offa, boolean complex) {
         int nthreads = ConcurrencyUtils.getNumberOfThreads();
         long n2;
         if (complex) {
@@ -11250,11 +11072,9 @@ public class CommonUtils
             for (int i = 0; i < nthreads; i++) {
                 final long firstIdx = offa + i * k;
                 final long lastIdx = (i == (nthreads - 1)) ? offa + n2 : firstIdx + k;
-                futures[i] = ConcurrencyUtils.submit(new Runnable()
-                {
+                futures[i] = ConcurrencyUtils.submit(new Runnable() {
 
-                    public void run()
-                    {
+                    public void run() {
                         for (long i = firstIdx; i < lastIdx; i++) {
                             a.setDouble(i, a.getDouble(i) * m);
                         }

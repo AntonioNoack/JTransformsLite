@@ -2,12 +2,12 @@
  * JTransforms
  * Copyright (c) 2007 onward, Piotr Wendykier
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer. 
+ *    list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
@@ -37,10 +37,8 @@ import pl.edu.icm.jlargearrays.FloatLargeArray;
  * namely
  * <ul>
  * <li>{@link DoubleFFT_2D#realForward(double[])}</li>
- * <li>{@link DoubleFFT_2D#realForward(DoubleLargeArray)}</li>
  * <li>{@link DoubleFFT_2D#realForward(double[][])}</li>
  * <li>{@link FloatFFT_2D#realForward(float[])}</li>
- * <li>{@link FloatFFT_2D#realForward(FloatLargeArray)}</li>
  * <li>{@link FloatFFT_2D#realForward(float[][])}</li>
  * </ul>
  * are implemented to handle this case specifically. However, packing of the
@@ -94,8 +92,7 @@ import pl.edu.icm.jlargearrays.FloatLargeArray;
  * @author S&eacute;bastien Brisard
  */
 // @formatter:on
-public class RealFFTUtils_2D
-{
+public class RealFFTUtils_2D {
 
     /**
      * The constant <code>int</code> value of 1.
@@ -113,21 +110,6 @@ public class RealFFTUtils_2D
     private static final int ZERO = 0;
 
     /**
-     * The constant <code>int</code> value of 1.
-     */
-    private static final long ONEL = 1;
-
-    /**
-     * The constant <code>int</code> value of 2.
-     */
-    private static final long TWOL = 2;
-
-    /**
-     * The constant <code>int</code> value of 0.
-     */
-    private static final long ZEROL = 0;
-
-    /**
      * The size of the data in the second direction.
      */
     private final int columns;
@@ -138,35 +120,18 @@ public class RealFFTUtils_2D
     private final int rows;
 
     /**
-     * The size of the data in the second direction.
-     */
-    private final long columnsl;
-
-    /**
-     * The size of the data in the first direction.
-     */
-    private final long rowsl;
-
-    /**
      * Creates a new instance of this class. The size of the underlying
      * {@link DoubleFFT_2D} or {@link FloatFFT_2D} must be specified.
-     *  
-     * @param rows
-     *                number of rows
-     * @param columns
-     *                number of columns
+     *
+     * @param rows    number of rows
+     * @param columns number of columns
      */
-    public RealFFTUtils_2D(final long rows, final long columns)
-    {
+    public RealFFTUtils_2D(final long rows, final long columns) {
         this.columns = (int) columns;
         this.rows = (int) rows;
-        this.columnsl = columns;
-        this.rowsl = rows;
-
     }
 
     /**
-     *
      * Returns the 1d index of the specified 2d Fourier mode. In other words, if
      * <code>packed</code> contains the transformed data following a call to
      * {@link DoubleFFT_2D#realForward(double[])} or
@@ -180,16 +145,12 @@ public class RealFFTUtils_2D
      * <li>if <code>index &lt; 0 </code>, then the Fourier mode is
      * <code>-packed[-index]</code>,</li>
      * </ul>
-     *  
-     * @param r
-     *          the row index
-     * @param c
-     *          the column index
-     *  
+     *
+     * @param r the row index
+     * @param c the column index
      * @return the value of <code>index</code>
      */
-    public int getIndex(final int r, final int c)
-    {
+    public int getIndex(final int r, final int c) {
         final int cmod2 = c & ONE;
         final int rmul2 = r << ONE;
         if (r != ZERO) {
@@ -242,99 +203,17 @@ public class RealFFTUtils_2D
     }
 
     /**
-     *
-     * Returns the 1d index of the specified 2d Fourier mode. In other words, if
-     * <code>packed</code> contains the transformed data following a call to
-     * {@link DoubleFFT_2D#realForward(DoubleLargeArray)} or
-     * {@link FloatFFT_2D#realForward(FloatLargeArray)}, then the returned value
-     * <code>index</code> gives access to the <code>[r][c]</code> Fourier mode
-     * <ul>
-     * <li>if <code>index == {@link Long#MIN_VALUE}</code>, then the Fourier
-     * mode is zero,</li>
-     * <li>if <code>index &ge; 0</code>, then the Fourier mode is
-     * <code>packed[index]</code>,</li>
-     * <li>if <code>index &lt; 0</code>, then the Fourier mode is
-     * <code>-packed[-index]</code>,</li>
-     * </ul>
-     *  
-     * @param r
-     *          the row index
-     * @param c
-     *          the column index
-     *  
-     * @return the value of <code>index</code>
-     */
-    public long getIndex(final long r, final long c)
-    {
-        final long cmod2 = c & ONEL;
-        final long rmul2 = r << ONEL;
-        if (r != ZERO) {
-            if (c <= ONEL) {
-                if (rmul2 == rowsl) {
-                    if (cmod2 == ONEL) {
-                        return Long.MIN_VALUE;
-                    }
-                    return ((rowsl * columnsl) >> ONEL);
-                } else if (rmul2 < rowsl) {
-                    return columnsl * r + cmod2;
-                } else if (cmod2 == ZEROL) {
-                    return columnsl * (rowsl - r);
-                } else {
-                    return -(columnsl * (rowsl - r) + ONEL);
-                }
-            } else if ((c == columnsl) || (c == columnsl + ONEL)) {
-                if (rmul2 == rowsl) {
-                    if (cmod2 == ONEL) {
-                        return Long.MIN_VALUE;
-                    }
-                    return ((rowsl * columnsl) >> ONEL) + ONEL;
-                } else if (rmul2 < rowsl) {
-                    if (cmod2 == ZEROL) {
-                        return columnsl * (rowsl - r) + ONEL;
-                    } else {
-                        return -(columnsl * (rowsl - r));
-                    }
-                } else {
-                    return columnsl * r + ONEL - cmod2;
-                }
-            } else if (c < columnsl) {
-                return columnsl * r + c;
-            } else if (cmod2 == ZEROL) {
-                return columnsl * (rowsl + TWOL - r) - c;
-            } else {
-                return -(columnsl * (rowsl + TWOL - r) - c + TWOL);
-            }
-        } else if ((c == ONEL) || (c == columnsl + ONEL)) {
-            return Long.MIN_VALUE;
-        } else if (c == columnsl) {
-            return ONEL;
-        } else if (c < columnsl) {
-            return c;
-        } else if (cmod2 == ZEROL) {
-            return (columnsl << ONEL) - c;
-        } else {
-            return -((columnsl << ONEL) - c + TWOL);
-        }
-    }
-
-    /**
      * Sets the specified Fourier mode of the transformed data. The data array
      * results from a call to {@link DoubleFFT_2D#realForward(double[])}.
-     *  
-     * @param val
-     *               the new value of the <code>[r][c]</code> Fourier mode
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
+     *
+     * @param val    the new value of the <code>[r][c]</code> Fourier mode
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
+     * @param pos    index of the first element in array <code>packed</code>
      */
     public void pack(final double val, final int r, final int c,
-                     final double[] packed, final int pos)
-    {
+                     final double[] packed, final int pos) {
         final int index = getIndex(r, c);
         if (index >= 0) {
             packed[pos + index] = val;
@@ -342,59 +221,23 @@ public class RealFFTUtils_2D
             packed[pos - index] = -val;
         } else {
             throw new IllegalArgumentException(
-                String.format(
-                    "[%d][%d] component cannot be modified (always zero)",
-                    r, c));
-        }
-    }
-
-    /**
-     * Sets the specified Fourier mode of the transformed data. The data array
-     * results from a call to {@link DoubleFFT_2D#realForward(DoubleLargeArray)}.
-     *  
-     * @param val
-     *               the new value of the <code>[r][c]</code> Fourier mode
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
-     */
-    public void pack(final double val, final long r, final long c,
-                     final DoubleLargeArray packed, final long pos)
-    {
-        final long index = getIndex(r, c);
-        if (index >= 0) {
-            packed.setDouble(pos + index, val);
-        } else if (index > Long.MIN_VALUE) {
-            packed.setDouble(pos - index, -val);
-        } else {
-            throw new IllegalArgumentException(
-                String.format(
-                    "[%d][%d] component cannot be modified (always zero)",
-                    r, c));
+                    String.format(
+                            "[%d][%d] component cannot be modified (always zero)",
+                            r, c));
         }
     }
 
     /**
      * Sets the specified Fourier mode of the transformed data. The data array
      * results from a call to {@link DoubleFFT_2D#realForward(double[][])}.
-     *  
-     * @param val
-     *               the new value of the <code>[r][c]</code> Fourier mode
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
+     *
+     * @param val    the new value of the <code>[r][c]</code> Fourier mode
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
      */
     public void pack(final double val, final int r, final int c,
-                     final double[][] packed)
-    {
+                     final double[][] packed) {
         final int index = getIndex(r, c);
         if (index >= 0) {
             packed[index / columns][index % columns] = val;
@@ -402,30 +245,24 @@ public class RealFFTUtils_2D
             packed[(-index) / columns][(-index) % columns] = -val;
         } else {
             throw new IllegalArgumentException(
-                String.format(
-                    "[%d][%d] component cannot be modified (always zero)",
-                    r, c));
+                    String.format(
+                            "[%d][%d] component cannot be modified (always zero)",
+                            r, c));
         }
     }
 
     /**
      * Sets the specified Fourier mode of the transformed data. The data array
      * results from a call to {@link FloatFFT_2D#realForward(float[])}.
-     *  
-     * @param val
-     *               the new value of the <code>[r][c]</code> Fourier mode
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
+     *
+     * @param val    the new value of the <code>[r][c]</code> Fourier mode
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
+     * @param pos    index of the first element in array <code>packed</code>
      */
     public void pack(final float val, final int r, final int c,
-                     final float[] packed, final int pos)
-    {
+                     final float[] packed, final int pos) {
         final int index = getIndex(r, c);
         if (index >= 0) {
             packed[pos + index] = val;
@@ -433,59 +270,23 @@ public class RealFFTUtils_2D
             packed[pos - index] = -val;
         } else {
             throw new IllegalArgumentException(
-                String.format(
-                    "[%d][%d] component cannot be modified (always zero)",
-                    r, c));
-        }
-    }
-
-    /**
-     * Sets the specified Fourier mode of the transformed data. The data array
-     * results from a call to {@link FloatFFT_2D#realForward(FloatLargeArray)}.
-     *  
-     * @param val
-     *               the new value of the <code>[r][c]</code> Fourier mode
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
-     */
-    public void pack(final float val, final long r, final long c,
-                     final FloatLargeArray packed, final long pos)
-    {
-        final long index = getIndex(r, c);
-        if (index >= 0) {
-            packed.setFloat(pos + index, val);
-        } else if (index > Long.MIN_VALUE) {
-            packed.setFloat(pos - index, -val);
-        } else {
-            throw new IllegalArgumentException(
-                String.format(
-                    "[%d][%d] component cannot be modified (always zero)",
-                    r, c));
+                    String.format(
+                            "[%d][%d] component cannot be modified (always zero)",
+                            r, c));
         }
     }
 
     /**
      * Sets the specified Fourier mode of the transformed data. The data array
      * results from a call to {@link FloatFFT_2D#realForward(float[][])}.
-     *  
-     * @param val
-     *               the new value of the <code>[r][c]</code> Fourier mode
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
+     *
+     * @param val    the new value of the <code>[r][c]</code> Fourier mode
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
      */
     public void pack(final float val, final int r, final int c,
-                     final float[][] packed)
-    {
+                     final float[][] packed) {
         final int index = getIndex(r, c);
         if (index >= 0) {
             packed[index / columns][index % columns] = val;
@@ -493,30 +294,24 @@ public class RealFFTUtils_2D
             packed[(-index) / columns][(-index) % columns] = -val;
         } else {
             throw new IllegalArgumentException(
-                String.format(
-                    "[%d][%d] component cannot be modified (always zero)",
-                    r, c));
+                    String.format(
+                            "[%d][%d] component cannot be modified (always zero)",
+                            r, c));
         }
     }
 
     /**
      * Returns the specified Fourier mode of the transformed data. The data
      * array results from a call to {@link DoubleFFT_2D#realForward(double[])}.
-     *  
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
-     *  
+     *
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
+     * @param pos    index of the first element in array <code>packed</code>
      * @return the value of the <code>[r][c]</code> Fourier mode
      */
     public double unpack(final int r, final int c, final double[] packed,
-                         final int pos)
-    {
+                         final int pos) {
         final int index = getIndex(r, c);
         if (index >= 0) {
             return packed[pos + index];
@@ -529,48 +324,15 @@ public class RealFFTUtils_2D
 
     /**
      * Returns the specified Fourier mode of the transformed data. The data
-     * array results from a call to {@link DoubleFFT_2D#realForward(DoubleLargeArray)}.
-     *  
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
-     *  
-     * @return the value of the <code>[r][c]</code> Fourier mode
-     */
-    public double unpack(final long r, final long c, final DoubleLargeArray packed,
-                         final long pos)
-    {
-        final long index = getIndex(r, c);
-        if (index >= 0) {
-            return packed.getDouble(pos + index);
-        } else if (index > Long.MIN_VALUE) {
-            return -packed.getDouble(pos - index);
-        } else {
-            return ZEROL;
-        }
-    }
-
-    /**
-     * Returns the specified Fourier mode of the transformed data. The data
      * array results from a call to {@link DoubleFFT_2D#realForward(double[][])}
      * .
-     *  
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     *  
+     *
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
      * @return the value of the <code>[r][c]</code> Fourier mode
      */
-    public double unpack(final int r, final int c, final double[][] packed)
-    {
+    public double unpack(final int r, final int c, final double[][] packed) {
         final int index = getIndex(r, c);
         if (index >= 0) {
             return packed[index / columns][index % columns];
@@ -585,21 +347,15 @@ public class RealFFTUtils_2D
      * Returns the specified Fourier mode of the transformed data. The data
      * array results from a call to {@link FloatFFT_2D#realForward(float[])}
      * .
-     *  
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
-     *  
+     *
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
+     * @param pos    index of the first element in array <code>packed</code>
      * @return the value of the <code>[r][c]</code> Fourier mode
      */
     public float unpack(final int r, final int c, final float[] packed,
-                        final int pos)
-    {
+                        final int pos) {
         final int index = getIndex(r, c);
         if (index >= 0) {
             return packed[pos + index];
@@ -612,48 +368,14 @@ public class RealFFTUtils_2D
 
     /**
      * Returns the specified Fourier mode of the transformed data. The data
-     * array results from a call to {@link FloatFFT_2D#realForward(FloatLargeArray)}
-     * .
-     *  
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
-     *  
-     * @return the value of the <code>[r][c]</code> Fourier mode
-     */
-    public float unpack(final long r, final long c, final FloatLargeArray packed,
-                        final long pos)
-    {
-        final long index = getIndex(r, c);
-        if (index >= 0) {
-            return packed.getFloat(pos + index);
-        } else if (index > Long.MIN_VALUE) {
-            return -packed.getFloat(pos - index);
-        } else {
-            return ZEROL;
-        }
-    }
-
-    /**
-     * Returns the specified Fourier mode of the transformed data. The data
      * array results from a call to {@link FloatFFT_2D#realForward(float[][])} .
-     *  
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     *  
+     *
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
      * @return the value of the <code>[r][c]</code> Fourier mode
      */
-    public float unpack(final int r, final int c, final float[][] packed)
-    {
+    public float unpack(final int r, final int c, final float[][] packed) {
         final int index = getIndex(r, c);
         if (index >= 0) {
             return packed[index / columns][index % columns];

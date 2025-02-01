@@ -2,12 +2,12 @@
  * JTransforms
  * Copyright (c) 2007 onward, Piotr Wendykier
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer. 
+ *    list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
@@ -26,17 +26,15 @@
  * ***** END LICENSE BLOCK ***** */
 package org.jtransforms.dct;
 
+import org.jtransforms.fft.DoubleFFT_1D;
+import org.jtransforms.utils.CommonUtils;
+import pl.edu.icm.jlargearrays.*;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jtransforms.fft.DoubleFFT_1D;
-import org.jtransforms.utils.CommonUtils;
-import pl.edu.icm.jlargearrays.ConcurrencyUtils;
-import pl.edu.icm.jlargearrays.DoubleLargeArray;
-import pl.edu.icm.jlargearrays.LargeArray;
-import pl.edu.icm.jlargearrays.LongLargeArray;
-import pl.edu.icm.jlargearrays.LargeArrayUtils;
+
 import static org.apache.commons.math3.util.FastMath.*;
 
 /**
@@ -46,11 +44,10 @@ import static org.apache.commons.math3.util.FastMath.*;
  * <br>
  * Part of the code is derived from General Purpose FFT Package written by
  * Takuya Ooura (http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html)
- *  
+ *
  * @author Piotr Wendykier (piotr.wendykier@gmail.com)
  */
-public class DoubleDCT_1D
-{
+public class DoubleDCT_1D {
 
     private int n;
 
@@ -82,11 +79,10 @@ public class DoubleDCT_1D
 
     /**
      * Creates new instance of DoubleDCT_1D.
-     *  
+     *
      * @param n size of data
      */
-    public DoubleDCT_1D(long n)
-    {
+    public DoubleDCT_1D(long n) {
         if (n < 1) {
             throw new IllegalArgumentException("n must be greater than 0");
         }
@@ -139,35 +135,32 @@ public class DoubleDCT_1D
 
     /**
      * Computes 1D forward DCT (DCT-II) leaving the result in <code>a</code>.
-     *  
+     *
      * @param a     data to transform
      * @param scale if true then scaling is performed
      */
-    public void forward(double[] a, boolean scale)
-    {
+    public void forward(double[] a, boolean scale) {
         forward(a, 0, scale);
     }
 
     /**
      * Computes 1D forward DCT (DCT-II) leaving the result in <code>a</code>.
-     *  
+     *
      * @param a     data to transform
      * @param scale if true then scaling is performed
      */
-    public void forward(DoubleLargeArray a, boolean scale)
-    {
+    public void forward(DoubleLargeArray a, boolean scale) {
         forward(a, 0, scale);
     }
 
     /**
      * Computes 1D forward DCT (DCT-II) leaving the result in <code>a</code>.
-     *  
+     *
      * @param a     data to transform
      * @param offa  index of the first element in array <code>a</code>
      * @param scale if true then scaling is performed
      */
-    public void forward(final double[] a, final int offa, boolean scale)
-    {
+    public void forward(final double[] a, final int offa, boolean scale) {
         if (n == 1) {
             return;
         }
@@ -208,10 +201,8 @@ public class DoubleDCT_1D
                 for (int j = 0; j < nthreads; j++) {
                     final int firstIdx = j * k;
                     final int lastIdx = (j == (nthreads - 1)) ? n : firstIdx + k;
-                    futures[j] = ConcurrencyUtils.submit(new Runnable()
-                    {
-                        public void run()
-                        {
+                    futures[j] = ConcurrencyUtils.submit(new Runnable() {
+                        public void run() {
                             for (int i = firstIdx; i < lastIdx; i++) {
                                 int twoi = 2 * i;
                                 int idx = offa + i;
@@ -244,13 +235,12 @@ public class DoubleDCT_1D
 
     /**
      * Computes 1D forward DCT (DCT-II) leaving the result in <code>a</code>.
-     *  
+     *
      * @param a     data to transform
      * @param offa  index of the first element in array <code>a</code>
      * @param scale if true then scaling is performed
      */
-    public void forward(final DoubleLargeArray a, final long offa, boolean scale)
-    {
+    public void forward(final DoubleLargeArray a, final long offa, boolean scale) {
         if (nl == 1) {
             return;
         }
@@ -295,10 +285,8 @@ public class DoubleDCT_1D
                 for (int j = 0; j < nthreads; j++) {
                     final long firstIdx = j * k;
                     final long lastIdx = (j == (nthreads - 1)) ? nl : firstIdx + k;
-                    futures[j] = ConcurrencyUtils.submit(new Runnable()
-                    {
-                        public void run()
-                        {
+                    futures[j] = ConcurrencyUtils.submit(new Runnable() {
+                        public void run() {
                             for (long i = firstIdx; i < lastIdx; i++) {
                                 long twoi = 2 * i;
                                 long idx = offa + i;
@@ -331,35 +319,32 @@ public class DoubleDCT_1D
 
     /**
      * Computes 1D inverse DCT (DCT-III) leaving the result in <code>a</code>.
-     *  
+     *
      * @param a     data to transform
      * @param scale if true then scaling is performed
      */
-    public void inverse(double[] a, boolean scale)
-    {
+    public void inverse(double[] a, boolean scale) {
         inverse(a, 0, scale);
     }
 
     /**
      * Computes 1D inverse DCT (DCT-III) leaving the result in <code>a</code>.
-     *  
+     *
      * @param a     data to transform
      * @param scale if true then scaling is performed
      */
-    public void inverse(DoubleLargeArray a, boolean scale)
-    {
+    public void inverse(DoubleLargeArray a, boolean scale) {
         inverse(a, 0, scale);
     }
 
     /**
      * Computes 1D inverse DCT (DCT-III) leaving the result in <code>a</code>.
-     *  
+     *
      * @param a     data to transform
      * @param offa  index of the first element in array <code>a</code>
      * @param scale if true then scaling is performed
      */
-    public void inverse(final double[] a, final int offa, boolean scale)
-    {
+    public void inverse(final double[] a, final int offa, boolean scale) {
         if (n == 1) {
             return;
         }
@@ -400,10 +385,8 @@ public class DoubleDCT_1D
                 for (int j = 0; j < nthreads; j++) {
                     final int firstIdx = j * k;
                     final int lastIdx = (j == (nthreads - 1)) ? n : firstIdx + k;
-                    futures[j] = ConcurrencyUtils.submit(new Runnable()
-                    {
-                        public void run()
-                        {
+                    futures[j] = ConcurrencyUtils.submit(new Runnable() {
+                        public void run() {
                             for (int i = firstIdx; i < lastIdx; i++) {
                                 int twoi = 2 * i;
                                 double elem = a[offa + i];
@@ -435,13 +418,12 @@ public class DoubleDCT_1D
 
     /**
      * Computes 1D inverse DCT (DCT-III) leaving the result in <code>a</code>.
-     *  
+     *
      * @param a     data to transform
      * @param offa  index of the first element in array <code>a</code>
      * @param scale if true then scaling is performed
      */
-    public void inverse(final DoubleLargeArray a, final long offa, boolean scale)
-    {
+    public void inverse(final DoubleLargeArray a, final long offa, boolean scale) {
         if (nl == 1) {
             return;
         }
@@ -486,10 +468,8 @@ public class DoubleDCT_1D
                 for (int j = 0; j < nthreads; j++) {
                     final long firstIdx = j * k;
                     final long lastIdx = (j == (nthreads - 1)) ? nl : firstIdx + k;
-                    futures[j] = ConcurrencyUtils.submit(new Runnable()
-                    {
-                        public void run()
-                        {
+                    futures[j] = ConcurrencyUtils.submit(new Runnable() {
+                        public void run() {
                             for (long i = firstIdx; i < lastIdx; i++) {
                                 long twoi = 2 * i;
                                 double elem = a.getDouble(offa + i);
@@ -520,8 +500,7 @@ public class DoubleDCT_1D
     }
 
     /* -------- initializing routines -------- */
-    private double[] makect(int n)
-    {
+    private double[] makect(int n) {
         int twon = 2 * n;
         int idx;
         double delta = PI / twon;
@@ -537,8 +516,7 @@ public class DoubleDCT_1D
         return c;
     }
 
-    private DoubleLargeArray makect(long n)
-    {
+    private DoubleLargeArray makect(long n) {
         long twon = 2 * n;
         long idx;
         double delta = PI / twon;
@@ -554,8 +532,7 @@ public class DoubleDCT_1D
         return c;
     }
 
-    private static void rftfsub(int n, double[] a, int offa, int nc, double[] c, int startc)
-    {
+    private static void rftfsub(int n, double[] a, int offa, int nc, double[] c, int startc) {
         int k, kk, ks, m;
         double wkr, wki, xr, xi, yr, yi;
         int idx1, idx2;
@@ -580,8 +557,7 @@ public class DoubleDCT_1D
         }
     }
 
-    private static void rftfsub(long n, DoubleLargeArray a, long offa, long nc, DoubleLargeArray c, long startc)
-    {
+    private static void rftfsub(long n, DoubleLargeArray a, long offa, long nc, DoubleLargeArray c, long startc) {
         long k, kk, ks, m;
         double wkr, wki, xr, xi, yr, yi;
         long idx1, idx2;
@@ -606,8 +582,7 @@ public class DoubleDCT_1D
         }
     }
 
-    private static void rftbsub(int n, double[] a, int offa, int nc, double[] c, int startc)
-    {
+    private static void rftbsub(int n, double[] a, int offa, int nc, double[] c, int startc) {
         int k, kk, ks, m;
         double wkr, wki, xr, xi, yr, yi;
         int idx1, idx2;
@@ -632,8 +607,7 @@ public class DoubleDCT_1D
         }
     }
 
-    private static void rftbsub(long n, DoubleLargeArray a, long offa, long nc, DoubleLargeArray c, long startc)
-    {
+    private static void rftbsub(long n, DoubleLargeArray a, long offa, long nc, DoubleLargeArray c, long startc) {
         long k, kk, ks, m;
         double wkr, wki, xr, xi, yr, yi;
         long idx1, idx2;

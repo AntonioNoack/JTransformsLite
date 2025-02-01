@@ -2,12 +2,12 @@
  * JTransforms
  * Copyright (c) 2007 onward, Piotr Wendykier
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer. 
+ *    list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
@@ -26,15 +26,16 @@
  * ***** END LICENSE BLOCK ***** */
 package org.jtransforms.fft;
 
-import java.util.concurrent.Future;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtransforms.utils.CommonUtils;
 import pl.edu.icm.jlargearrays.ConcurrencyUtils;
-import pl.edu.icm.jlargearrays.DoubleLargeArray;
 import pl.edu.icm.jlargearrays.LargeArray;
-import static org.apache.commons.math3.util.FastMath.*;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.apache.commons.math3.util.FastMath.min;
 
 /**
  * Computes 2D Discrete Fourier Transform (DFT) of complex and real, double
@@ -44,21 +45,16 @@ import static org.apache.commons.math3.util.FastMath.*;
  * <br>
  * Part of the code is derived from General Purpose FFT Package written by Takuya Ooura
  * (http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html)
- *  
+ *
  * @author Piotr Wendykier (piotr.wendykier@gmail.com)
  */
-public class DoubleFFT_2D
-{
+public class DoubleFFT_2D {
 
-    private int rows;
+    private final int rows;
 
     private int columns;
 
-    private long rowsl;
-
-    private long columnsl;
-
-    private DoubleFFT_1D fftColumns, fftRows;
+    private final DoubleFFT_1D fftColumns, fftRows;
 
     private boolean isPowerOfTwo = false;
 
@@ -66,22 +62,17 @@ public class DoubleFFT_2D
 
     /**
      * Creates new instance of DoubleFFT_2D.
-     *  
-     * @param rows
-     *                number of rows
-     * @param columns
-     *                number of columns
+     *
+     * @param rows    number of rows
+     * @param columns number of columns
      */
-    public DoubleFFT_2D(long rows, long columns)
-    {
+    public DoubleFFT_2D(long rows, long columns) {
         if (rows <= 1 || columns <= 1) {
             throw new IllegalArgumentException("rows and columns must be greater than 1");
         }
 
         this.rows = (int) rows;
         this.columns = (int) columns;
-        this.rowsl = rows;
-        this.columnsl = columns;
         if (rows * columns >= CommonUtils.getThreadsBeginN_2D()) {
             this.useThreads = true;
         }
@@ -103,17 +94,15 @@ public class DoubleFFT_2D
      * Complex number is stored as two double values in sequence: the real and
      * imaginary part, i.e. the input array must be of size rows*2*columns. The
      * physical layout of the input data has to be as follows:<br>
-     *  
+     *
      * <pre>
      * a[k1*2*columns+2*k2] = Re[k1][k2],
      * a[k1*2*columns+2*k2+1] = Im[k1][k2], 0&lt;=k1&lt;rows, 0&lt;=k2&lt;columns,
      * </pre>
-     *  
-     * @param a
-     *          data to transform
+     *
+     * @param a data to transform
      */
-    public void complexForward(final double[] a)
-    {
+    public void complexForward(final double[] a) {
         int nthreads = ConcurrencyUtils.getNumberOfThreads();
         if (isPowerOfTwo) {
             columns = 2 * columns;
@@ -135,10 +124,8 @@ public class DoubleFFT_2D
                 for (int l = 0; l < nthreads; l++) {
                     final int firstRow = l * p;
                     final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                    futures[l] = ConcurrencyUtils.submit(new Runnable()
-                    {
-                        public void run()
-                        {
+                    futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                        public void run() {
                             for (int r = firstRow; r < lastRow; r++) {
                                 fftColumns.complexForward(a, r * rowStride);
                             }
@@ -147,19 +134,15 @@ public class DoubleFFT_2D
                 }
                 try {
                     ConcurrencyUtils.waitForCompletion(futures);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
+                } catch (InterruptedException | ExecutionException ex) {
                     Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 p = columns / nthreads;
                 for (int l = 0; l < nthreads; l++) {
                     final int firstColumn = l * p;
                     final int lastColumn = (l == (nthreads - 1)) ? columns : firstColumn + p;
-                    futures[l] = ConcurrencyUtils.submit(new Runnable()
-                    {
-                        public void run()
-                        {
+                    futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                        public void run() {
                             double[] temp = new double[2 * rows];
                             for (int c = firstColumn; c < lastColumn; c++) {
                                 int idx0 = 2 * c;
@@ -182,9 +165,7 @@ public class DoubleFFT_2D
                 }
                 try {
                     ConcurrencyUtils.waitForCompletion(futures);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
+                } catch (InterruptedException | ExecutionException ex) {
                     Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else {
@@ -214,136 +195,19 @@ public class DoubleFFT_2D
 
     /**
      * Computes 2D forward DFT of complex data leaving the result in
-     * <code>a</code>. The data is stored in 1D array in row-major order.
-     * Complex number is stored as two double values in sequence: the real and
-     * imaginary part, i.e. the input array must be of size rows*2*columns. The
-     * physical layout of the input data has to be as follows:<br>
-     *  
-     * <pre>
-     * a[k1*2*columns+2*k2] = Re[k1][k2],
-     * a[k1*2*columns+2*k2+1] = Im[k1][k2], 0&lt;=k1&lt;rows, 0&lt;=k2&lt;columns,
-     * </pre>
-     *  
-     * @param a
-     *          data to transform
-     */
-    public void complexForward(final DoubleLargeArray a)
-    {
-        int nthreads = ConcurrencyUtils.getNumberOfThreads();
-        if (isPowerOfTwo) {
-            columnsl = 2 * columnsl;
-            if ((nthreads > 1) && useThreads) {
-                xdft2d0_subth1(0, -1, a, true);
-                cdft2d_subth(-1, a, true);
-            } else {
-                for (int r = 0; r < rowsl; r++) {
-                    fftColumns.complexForward(a, r * columnsl);
-                }
-                cdft2d_sub(-1, a, true);
-            }
-            columnsl = columnsl / 2;
-        } else {
-            final long rowStride = 2 * columnsl;
-            if ((nthreads > 1) && useThreads && (rowsl >= nthreads) && (columnsl >= nthreads)) {
-                Future<?>[] futures = new Future[nthreads];
-                long p = rowsl / nthreads;
-                for (int l = 0; l < nthreads; l++) {
-                    final long firstRow = l * p;
-                    final long lastRow = (l == (nthreads - 1)) ? rowsl : firstRow + p;
-                    futures[l] = ConcurrencyUtils.submit(new Runnable()
-                    {
-                        public void run()
-                        {
-                            for (long r = firstRow; r < lastRow; r++) {
-                                fftColumns.complexForward(a, r * rowStride);
-                            }
-                        }
-                    });
-                }
-                try {
-                    ConcurrencyUtils.waitForCompletion(futures);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
-                    Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                p = columnsl / nthreads;
-                for (int l = 0; l < nthreads; l++) {
-                    final long firstColumn = l * p;
-                    final long lastColumn = (l == (nthreads - 1)) ? columnsl : firstColumn + p;
-                    futures[l] = ConcurrencyUtils.submit(new Runnable()
-                    {
-                        public void run()
-                        {
-                            DoubleLargeArray temp = new DoubleLargeArray(2 * rowsl, false);
-                            for (long c = firstColumn; c < lastColumn; c++) {
-                                long idx0 = 2 * c;
-                                for (long r = 0; r < rowsl; r++) {
-                                    long idx1 = 2 * r;
-                                    long idx2 = r * rowStride + idx0;
-                                    temp.setDouble(idx1, a.getDouble(idx2));
-                                    temp.setDouble(idx1 + 1, a.getDouble(idx2 + 1));
-                                }
-                                fftRows.complexForward(temp);
-                                for (long r = 0; r < rowsl; r++) {
-                                    long idx1 = 2 * r;
-                                    long idx2 = r * rowStride + idx0;
-                                    a.setDouble(idx2, temp.getDouble(idx1));
-                                    a.setDouble(idx2 + 1, temp.getDouble(idx1 + 1));
-                                }
-                            }
-                        }
-                    });
-                }
-                try {
-                    ConcurrencyUtils.waitForCompletion(futures);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
-                    Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            } else {
-                for (long r = 0; r < rowsl; r++) {
-                    fftColumns.complexForward(a, r * rowStride);
-                }
-                DoubleLargeArray temp = new DoubleLargeArray(2 * rowsl, false);
-                for (long c = 0; c < columnsl; c++) {
-                    long idx0 = 2 * c;
-                    for (long r = 0; r < rowsl; r++) {
-                        long idx1 = 2 * r;
-                        long idx2 = r * rowStride + idx0;
-                        temp.setDouble(idx1, a.getDouble(idx2));
-                        temp.setDouble(idx1 + 1, a.getDouble(idx2 + 1));
-                    }
-                    fftRows.complexForward(temp);
-                    for (long r = 0; r < rowsl; r++) {
-                        long idx1 = 2 * r;
-                        long idx2 = r * rowStride + idx0;
-                        a.setDouble(idx2, temp.getDouble(idx1));
-                        a.setDouble(idx2 + 1, temp.getDouble(idx1 + 1));
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Computes 2D forward DFT of complex data leaving the result in
      * <code>a</code>. The data is stored in 2D array. Complex data is
      * represented by 2 double values in sequence: the real and imaginary part,
      * i.e. the input array must be of size rows by 2*columns. The physical
      * layout of the input data has to be as follows:<br>
-     *  
+     *
      * <pre>
      * a[k1][2*k2] = Re[k1][k2],
      * a[k1][2*k2+1] = Im[k1][k2], 0&lt;=k1&lt;rows, 0&lt;=k2&lt;columns,
      * </pre>
-     *  
-     * @param a
-     *          data to transform
+     *
+     * @param a data to transform
      */
-    public void complexForward(final double[][] a)
-    {
+    public void complexForward(final double[][] a) {
         int nthreads = ConcurrencyUtils.getNumberOfThreads();
         if (isPowerOfTwo) {
             columns = 2 * columns;
@@ -363,10 +227,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int r = firstRow; r < lastRow; r++) {
                             fftColumns.complexForward(a[r]);
                         }
@@ -375,19 +237,15 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
             p = columns / nthreads;
             for (int l = 0; l < nthreads; l++) {
                 final int firstColumn = l * p;
                 final int lastColumn = (l == (nthreads - 1)) ? columns : firstColumn + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         double[] temp = new double[2 * rows];
                         for (int c = firstColumn; c < lastColumn; c++) {
                             int idx1 = 2 * c;
@@ -408,9 +266,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
@@ -441,20 +297,16 @@ public class DoubleFFT_2D
      * Complex number is stored as two double values in sequence: the real and
      * imaginary part, i.e. the input array must be of size rows*2*columns. The
      * physical layout of the input data has to be as follows:<br>
-     *  
+     *
      * <pre>
      * a[k1*2*columns+2*k2] = Re[k1][k2],
      * a[k1*2*columns+2*k2+1] = Im[k1][k2], 0&lt;=k1&lt;rows, 0&lt;=k2&lt;columns,
      * </pre>
-     *  
-     * @param a
-     *              data to transform
-     * @param scale
-     *              if true then scaling is performed
-     *  
+     *
+     * @param a     data to transform
+     * @param scale if true then scaling is performed
      */
-    public void complexInverse(final double[] a, final boolean scale)
-    {
+    public void complexInverse(final double[] a, final boolean scale) {
         int nthreads = ConcurrencyUtils.getNumberOfThreads();
         if (isPowerOfTwo) {
             columns = 2 * columns;
@@ -477,10 +329,8 @@ public class DoubleFFT_2D
                 for (int l = 0; l < nthreads; l++) {
                     final int firstRow = l * p;
                     final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                    futures[l] = ConcurrencyUtils.submit(new Runnable()
-                    {
-                        public void run()
-                        {
+                    futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                        public void run() {
                             for (int r = firstRow; r < lastRow; r++) {
                                 fftColumns.complexInverse(a, r * rowspan, scale);
                             }
@@ -489,19 +339,15 @@ public class DoubleFFT_2D
                 }
                 try {
                     ConcurrencyUtils.waitForCompletion(futures);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
+                } catch (InterruptedException | ExecutionException ex) {
                     Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 p = columns / nthreads;
                 for (int l = 0; l < nthreads; l++) {
                     final int firstColumn = l * p;
                     final int lastColumn = (l == (nthreads - 1)) ? columns : firstColumn + p;
-                    futures[l] = ConcurrencyUtils.submit(new Runnable()
-                    {
-                        public void run()
-                        {
+                    futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                        public void run() {
                             double[] temp = new double[2 * rows];
                             for (int c = firstColumn; c < lastColumn; c++) {
                                 int idx1 = 2 * c;
@@ -524,9 +370,7 @@ public class DoubleFFT_2D
                 }
                 try {
                     ConcurrencyUtils.waitForCompletion(futures);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
+                } catch (InterruptedException | ExecutionException ex) {
                     Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else {
@@ -556,143 +400,20 @@ public class DoubleFFT_2D
 
     /**
      * Computes 2D inverse DFT of complex data leaving the result in
-     * <code>a</code>. The data is stored in 1D array in row-major order.
-     * Complex number is stored as two double values in sequence: the real and
-     * imaginary part, i.e. the input array must be of size rows*2*columns. The
-     * physical layout of the input data has to be as follows:<br>
-     *  
-     * <pre>
-     * a[k1*2*columns+2*k2] = Re[k1][k2],
-     * a[k1*2*columns+2*k2+1] = Im[k1][k2], 0&lt;=k1&lt;rows, 0&lt;=k2&lt;columns,
-     * </pre>
-     *  
-     * @param a
-     *              data to transform
-     * @param scale
-     *              if true then scaling is performed
-     *  
-     */
-    public void complexInverse(final DoubleLargeArray a, final boolean scale)
-    {
-        int nthreads = ConcurrencyUtils.getNumberOfThreads();
-        if (isPowerOfTwo) {
-            columnsl = 2 * columnsl;
-            if ((nthreads > 1) && useThreads) {
-                xdft2d0_subth1(0, 1, a, scale);
-                cdft2d_subth(1, a, scale);
-            } else {
-
-                for (long r = 0; r < rowsl; r++) {
-                    fftColumns.complexInverse(a, r * columnsl, scale);
-                }
-                cdft2d_sub(1, a, scale);
-            }
-            columnsl = columnsl / 2;
-        } else {
-            final long rowspan = 2 * columnsl;
-            if ((nthreads > 1) && useThreads && (rowsl >= nthreads) && (columnsl >= nthreads)) {
-                Future<?>[] futures = new Future[nthreads];
-                long p = rowsl / nthreads;
-                for (int l = 0; l < nthreads; l++) {
-                    final long firstRow = l * p;
-                    final long lastRow = (l == (nthreads - 1)) ? rowsl : firstRow + p;
-                    futures[l] = ConcurrencyUtils.submit(new Runnable()
-                    {
-                        public void run()
-                        {
-                            for (long r = firstRow; r < lastRow; r++) {
-                                fftColumns.complexInverse(a, r * rowspan, scale);
-                            }
-                        }
-                    });
-                }
-                try {
-                    ConcurrencyUtils.waitForCompletion(futures);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
-                    Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                p = columnsl / nthreads;
-                for (int l = 0; l < nthreads; l++) {
-                    final long firstColumn = l * p;
-                    final long lastColumn = (l == (nthreads - 1)) ? columnsl : firstColumn + p;
-                    futures[l] = ConcurrencyUtils.submit(new Runnable()
-                    {
-                        public void run()
-                        {
-                            DoubleLargeArray temp = new DoubleLargeArray(2 * rowsl, false);
-                            for (long c = firstColumn; c < lastColumn; c++) {
-                                long idx1 = 2 * c;
-                                for (long r = 0; r < rowsl; r++) {
-                                    long idx2 = 2 * r;
-                                    long idx3 = r * rowspan + idx1;
-                                    temp.setDouble(idx2, a.getDouble(idx3));
-                                    temp.setDouble(idx2 + 1, a.getDouble(idx3 + 1));
-                                }
-                                fftRows.complexInverse(temp, scale);
-                                for (long r = 0; r < rowsl; r++) {
-                                    long idx2 = 2 * r;
-                                    long idx3 = r * rowspan + idx1;
-                                    a.setDouble(idx3, temp.getDouble(idx2));
-                                    a.setDouble(idx3 + 1, temp.getDouble(idx2 + 1));
-                                }
-                            }
-                        }
-                    });
-                }
-                try {
-                    ConcurrencyUtils.waitForCompletion(futures);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
-                    Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            } else {
-                for (long r = 0; r < rowsl; r++) {
-                    fftColumns.complexInverse(a, r * rowspan, scale);
-                }
-                DoubleLargeArray temp = new DoubleLargeArray(2 * rowsl, false);
-                for (long c = 0; c < columnsl; c++) {
-                    long idx1 = 2 * c;
-                    for (long r = 0; r < rowsl; r++) {
-                        long idx2 = 2 * r;
-                        long idx3 = r * rowspan + idx1;
-                        temp.setDouble(idx2, a.getDouble(idx3));
-                        temp.setDouble(idx2 + 1, a.getDouble(idx3 + 1));
-                    }
-                    fftRows.complexInverse(temp, scale);
-                    for (long r = 0; r < rowsl; r++) {
-                        long idx2 = 2 * r;
-                        long idx3 = r * rowspan + idx1;
-                        a.setDouble(idx3, temp.getDouble(idx2));
-                        a.setDouble(idx3 + 1, temp.getDouble(idx2 + 1));
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Computes 2D inverse DFT of complex data leaving the result in
      * <code>a</code>. The data is stored in 2D array. Complex data is
      * represented by 2 double values in sequence: the real and imaginary part,
      * i.e. the input array must be of size rows by 2*columns. The physical
      * layout of the input data has to be as follows:<br>
-     *  
+     *
      * <pre>
      * a[k1][2*k2] = Re[k1][k2],
      * a[k1][2*k2+1] = Im[k1][k2], 0&lt;=k1&lt;rows, 0&lt;=k2&lt;columns,
      * </pre>
-     *  
-     * @param a
-     *              data to transform
-     * @param scale
-     *              if true then scaling is performed
-     *  
+     *
+     * @param a     data to transform
+     * @param scale if true then scaling is performed
      */
-    public void complexInverse(final double[][] a, final boolean scale)
-    {
+    public void complexInverse(final double[][] a, final boolean scale) {
         int nthreads = ConcurrencyUtils.getNumberOfThreads();
         if (isPowerOfTwo) {
             columns = 2 * columns;
@@ -713,10 +434,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int r = firstRow; r < lastRow; r++) {
                             fftColumns.complexInverse(a[r], scale);
                         }
@@ -725,19 +444,15 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
             p = columns / nthreads;
             for (int l = 0; l < nthreads; l++) {
                 final int firstColumn = l * p;
                 final int lastColumn = (l == (nthreads - 1)) ? columns : firstColumn + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         double[] temp = new double[2 * rows];
                         for (int c = firstColumn; c < lastColumn; c++) {
                             int idx1 = 2 * c;
@@ -758,9 +473,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
@@ -790,7 +503,7 @@ public class DoubleFFT_2D
      * . This method only works when the sizes of both dimensions are
      * power-of-two numbers. The physical layout of the output data is as
      * follows:
-     *  
+     *
      * <pre>
      * a[k1*columns+2*k2] = Re[k1][k2] = Re[rows-k1][columns-k2],
      * a[k1*columns+2*k2+1] = Im[k1][k2] = -Im[rows-k1][columns-k2],
@@ -808,18 +521,16 @@ public class DoubleFFT_2D
      * a[(rows/2)*columns] = Re[rows/2][0],
      * a[(rows/2)*columns+1] = Re[rows/2][columns/2]
      * </pre>
-     *  
+     * <p>
      * This method computes only half of the elements of the real transform. The
      * other half satisfies the symmetry condition. If you want the full real
      * forward transform, use <code>realForwardFull</code>. To get back the
      * original data, use <code>realInverse</code> on the output of this method.
-     *  
-     * @param a
-     *          data to transform
+     *
+     * @param a data to transform
      */
-    public void realForward(double[] a)
-    {
-        if (isPowerOfTwo == false) {
+    public void realForward(double[] a) {
+        if (!isPowerOfTwo) {
             throw new IllegalArgumentException("rows and columns must be power of two numbers");
         } else {
             int nthreads = ConcurrencyUtils.getNumberOfThreads();
@@ -842,59 +553,7 @@ public class DoubleFFT_2D
      * . This method only works when the sizes of both dimensions are
      * power-of-two numbers. The physical layout of the output data is as
      * follows:
-     *  
-     * <pre>
-     * a[k1*columns+2*k2] = Re[k1][k2] = Re[rows-k1][columns-k2],
-     * a[k1*columns+2*k2+1] = Im[k1][k2] = -Im[rows-k1][columns-k2],
-     * 0&lt;k1&lt;rows, 0&lt;k2&lt;columns/2,
-     * a[2*k2] = Re[0][k2] = Re[0][columns-k2],
-     * a[2*k2+1] = Im[0][k2] = -Im[0][columns-k2],
-     * 0&lt;k2&lt;columns/2,
-     * a[k1*columns] = Re[k1][0] = Re[rows-k1][0],
-     * a[k1*columns+1] = Im[k1][0] = -Im[rows-k1][0],
-     * a[(rows-k1)*columns+1] = Re[k1][columns/2] = Re[rows-k1][columns/2],
-     * a[(rows-k1)*columns] = -Im[k1][columns/2] = Im[rows-k1][columns/2],
-     * 0&lt;k1&lt;rows/2,
-     * a[0] = Re[0][0],
-     * a[1] = Re[0][columns/2],
-     * a[(rows/2)*columns] = Re[rows/2][0],
-     * a[(rows/2)*columns+1] = Re[rows/2][columns/2]
-     * </pre>
-     *  
-     * This method computes only half of the elements of the real transform. The
-     * other half satisfies the symmetry condition. If you want the full real
-     * forward transform, use <code>realForwardFull</code>. To get back the
-     * original data, use <code>realInverse</code> on the output of this method.
-     *  
-     * @param a
-     *          data to transform
-     */
-    public void realForward(DoubleLargeArray a)
-    {
-        if (isPowerOfTwo == false) {
-            throw new IllegalArgumentException("rows and columns must be power of two numbers");
-        } else {
-            int nthreads = ConcurrencyUtils.getNumberOfThreads();
-            if ((nthreads > 1) && useThreads) {
-                xdft2d0_subth1(1, 1, a, true);
-                cdft2d_subth(-1, a, true);
-                rdft2d_sub(1, a);
-            } else {
-                for (long r = 0; r < rowsl; r++) {
-                    fftColumns.realForward(a, r * columnsl);
-                }
-                cdft2d_sub(-1, a, true);
-                rdft2d_sub(1, a);
-            }
-        }
-    }
-
-    /**
-     * Computes 2D forward DFT of real data leaving the result in <code>a</code>
-     * . This method only works when the sizes of both dimensions are
-     * power-of-two numbers. The physical layout of the output data is as
-     * follows:
-     *  
+     *
      * <pre>
      * a[k1][2*k2] = Re[k1][k2] = Re[rows-k1][columns-k2],
      * a[k1][2*k2+1] = Im[k1][k2] = -Im[rows-k1][columns-k2],
@@ -912,18 +571,16 @@ public class DoubleFFT_2D
      * a[rows/2][0] = Re[rows/2][0],
      * a[rows/2][1] = Re[rows/2][columns/2]
      * </pre>
-     *  
+     * <p>
      * This method computes only half of the elements of the real transform. The
      * other half satisfies the symmetry condition. If you want the full real
      * forward transform, use <code>realForwardFull</code>. To get back the
      * original data, use <code>realInverse</code> on the output of this method.
-     *  
-     * @param a
-     *          data to transform
+     *
+     * @param a data to transform
      */
-    public void realForward(double[][] a)
-    {
-        if (isPowerOfTwo == false) {
+    public void realForward(double[][] a) {
+        if (!isPowerOfTwo) {
             throw new IllegalArgumentException("rows and columns must be power of two numbers");
         } else {
             int nthreads = ConcurrencyUtils.getNumberOfThreads();
@@ -949,12 +606,10 @@ public class DoubleFFT_2D
      * array must be of size rows*2*columns, with only the first rows*columns
      * elements filled with real data. To get back the original data, use
      * <code>complexInverse</code> on the output of this method.
-     *  
-     * @param a
-     *          data to transform
+     *
+     * @param a data to transform
      */
-    public void realForwardFull(double[] a)
-    {
+    public void realForwardFull(double[] a) {
         if (isPowerOfTwo) {
             int nthreads = ConcurrencyUtils.getNumberOfThreads();
             if ((nthreads > 1) && useThreads) {
@@ -979,48 +634,13 @@ public class DoubleFFT_2D
      * . This method computes full real forward transform, i.e. you will get the
      * same result as from <code>complexForward</code> called with all imaginary
      * part equal 0. Because the result is stored in <code>a</code>, the input
-     * array must be of size rows*2*columns, with only the first rows*columns
-     * elements filled with real data. To get back the original data, use
-     * <code>complexInverse</code> on the output of this method.
-     *  
-     * @param a
-     *          data to transform
-     */
-    public void realForwardFull(DoubleLargeArray a)
-    {
-        if (isPowerOfTwo) {
-            int nthreads = ConcurrencyUtils.getNumberOfThreads();
-            if ((nthreads > 1) && useThreads) {
-                xdft2d0_subth1(1, 1, a, true);
-                cdft2d_subth(-1, a, true);
-                rdft2d_sub(1, a);
-            } else {
-                for (long r = 0; r < rowsl; r++) {
-                    fftColumns.realForward(a, r * columnsl);
-                }
-                cdft2d_sub(-1, a, true);
-                rdft2d_sub(1, a);
-            }
-            fillSymmetric(a);
-        } else {
-            mixedRadixRealForwardFull(a);
-        }
-    }
-
-    /**
-     * Computes 2D forward DFT of real data leaving the result in <code>a</code>
-     * . This method computes full real forward transform, i.e. you will get the
-     * same result as from <code>complexForward</code> called with all imaginary
-     * part equal 0. Because the result is stored in <code>a</code>, the input
      * array must be of size rows by 2*columns, with only the first rows by
      * columns elements filled with real data. To get back the original data,
      * use <code>complexInverse</code> on the output of this method.
-     *  
-     * @param a
-     *          data to transform
+     *
+     * @param a data to transform
      */
-    public void realForwardFull(double[][] a)
-    {
+    public void realForwardFull(double[][] a) {
         if (isPowerOfTwo) {
             int nthreads = ConcurrencyUtils.getNumberOfThreads();
             if ((nthreads > 1) && useThreads) {
@@ -1045,7 +665,7 @@ public class DoubleFFT_2D
      * . This method only works when the sizes of both dimensions are
      * power-of-two numbers. The physical layout of the input data has to be as
      * follows:
-     *  
+     *
      * <pre>
      * a[k1*columns+2*k2] = Re[k1][k2] = Re[rows-k1][columns-k2],
      * a[k1*columns+2*k2+1] = Im[k1][k2] = -Im[rows-k1][columns-k2],
@@ -1063,20 +683,16 @@ public class DoubleFFT_2D
      * a[(rows/2)*columns] = Re[rows/2][0],
      * a[(rows/2)*columns+1] = Re[rows/2][columns/2]
      * </pre>
-     *  
+     * <p>
      * This method computes only half of the elements of the real transform. The
      * other half satisfies the symmetry condition. If you want the full real
      * inverse transform, use <code>realInverseFull</code>.
-     *  
-     * @param a
-     *              data to transform
-     *  
-     * @param scale
-     *              if true then scaling is performed
+     *
+     * @param a     data to transform
+     * @param scale if true then scaling is performed
      */
-    public void realInverse(double[] a, boolean scale)
-    {
-        if (isPowerOfTwo == false) {
+    public void realInverse(double[] a, boolean scale) {
+        if (!isPowerOfTwo) {
             throw new IllegalArgumentException("rows and columns must be power of two numbers");
         } else {
             int nthreads = ConcurrencyUtils.getNumberOfThreads();
@@ -1099,61 +715,7 @@ public class DoubleFFT_2D
      * . This method only works when the sizes of both dimensions are
      * power-of-two numbers. The physical layout of the input data has to be as
      * follows:
-     *  
-     * <pre>
-     * a[k1*columns+2*k2] = Re[k1][k2] = Re[rows-k1][columns-k2],
-     * a[k1*columns+2*k2+1] = Im[k1][k2] = -Im[rows-k1][columns-k2],
-     * 0&lt;k1&lt;rows, 0&lt;k2&lt;columns/2,
-     * a[2*k2] = Re[0][k2] = Re[0][columns-k2],
-     * a[2*k2+1] = Im[0][k2] = -Im[0][columns-k2],
-     * 0&lt;k2&lt;columns/2,
-     * a[k1*columns] = Re[k1][0] = Re[rows-k1][0],
-     * a[k1*columns+1] = Im[k1][0] = -Im[rows-k1][0],
-     * a[(rows-k1)*columns+1] = Re[k1][columns/2] = Re[rows-k1][columns/2],
-     * a[(rows-k1)*columns] = -Im[k1][columns/2] = Im[rows-k1][columns/2],
-     * 0&lt;k1&lt;rows/2,
-     * a[0] = Re[0][0],
-     * a[1] = Re[0][columns/2],
-     * a[(rows/2)*columns] = Re[rows/2][0],
-     * a[(rows/2)*columns+1] = Re[rows/2][columns/2]
-     * </pre>
-     *  
-     * This method computes only half of the elements of the real transform. The
-     * other half satisfies the symmetry condition. If you want the full real
-     * inverse transform, use <code>realInverseFull</code>.
-     *  
-     * @param a
-     *              data to transform
-     *  
-     * @param scale
-     *              if true then scaling is performed
-     */
-    public void realInverse(DoubleLargeArray a, boolean scale)
-    {
-        if (isPowerOfTwo == false) {
-            throw new IllegalArgumentException("rows and columns must be power of two numbers");
-        } else {
-            int nthreads = ConcurrencyUtils.getNumberOfThreads();
-            if ((nthreads > 1) && useThreads) {
-                rdft2d_sub(-1, a);
-                cdft2d_subth(1, a, scale);
-                xdft2d0_subth1(1, -1, a, scale);
-            } else {
-                rdft2d_sub(-1, a);
-                cdft2d_sub(1, a, scale);
-                for (long r = 0; r < rowsl; r++) {
-                    fftColumns.realInverse(a, r * columnsl, scale);
-                }
-            }
-        }
-    }
-
-    /**
-     * Computes 2D inverse DFT of real data leaving the result in <code>a</code>
-     * . This method only works when the sizes of both dimensions are
-     * power-of-two numbers. The physical layout of the input data has to be as
-     * follows:
-     *  
+     *
      * <pre>
      * a[k1][2*k2] = Re[k1][k2] = Re[rows-k1][columns-k2],
      * a[k1][2*k2+1] = Im[k1][k2] = -Im[rows-k1][columns-k2],
@@ -1171,20 +733,16 @@ public class DoubleFFT_2D
      * a[rows/2][0] = Re[rows/2][0],
      * a[rows/2][1] = Re[rows/2][columns/2]
      * </pre>
-     *  
+     * <p>
      * This method computes only half of the elements of the real transform. The
      * other half satisfies the symmetry condition. If you want the full real
      * inverse transform, use <code>realInverseFull</code>.
-     *  
-     * @param a
-     *              data to transform
-     *  
-     * @param scale
-     *              if true then scaling is performed
+     *
+     * @param a     data to transform
+     * @param scale if true then scaling is performed
      */
-    public void realInverse(double[][] a, boolean scale)
-    {
-        if (isPowerOfTwo == false) {
+    public void realInverse(double[][] a, boolean scale) {
+        if (!isPowerOfTwo) {
             throw new IllegalArgumentException("rows and columns must be power of two numbers");
         } else {
             int nthreads = ConcurrencyUtils.getNumberOfThreads();
@@ -1209,15 +767,11 @@ public class DoubleFFT_2D
      * part equal 0. Because the result is stored in <code>a</code>, the input
      * array must be of size rows*2*columns, with only the first rows*columns
      * elements filled with real data.
-     *  
-     * @param a
-     *              data to transform
-     *  
-     * @param scale
-     *              if true then scaling is performed
+     *
+     * @param a     data to transform
+     * @param scale if true then scaling is performed
      */
-    public void realInverseFull(double[] a, boolean scale)
-    {
+    public void realInverseFull(double[] a, boolean scale) {
         if (isPowerOfTwo) {
             int nthreads = ConcurrencyUtils.getNumberOfThreads();
             if ((nthreads > 1) && useThreads) {
@@ -1242,52 +796,13 @@ public class DoubleFFT_2D
      * . This method computes full real inverse transform, i.e. you will get the
      * same result as from <code>complexInverse</code> called with all imaginary
      * part equal 0. Because the result is stored in <code>a</code>, the input
-     * array must be of size rows*2*columns, with only the first rows*columns
-     * elements filled with real data.
-     *  
-     * @param a
-     *              data to transform
-     *  
-     * @param scale
-     *              if true then scaling is performed
-     */
-    public void realInverseFull(DoubleLargeArray a, boolean scale)
-    {
-        if (isPowerOfTwo) {
-            int nthreads = ConcurrencyUtils.getNumberOfThreads();
-            if ((nthreads > 1) && useThreads) {
-                xdft2d0_subth2(1, -1, a, scale);
-                cdft2d_subth(1, a, scale);
-                rdft2d_sub(1, a);
-            } else {
-                for (long r = 0; r < rowsl; r++) {
-                    fftColumns.realInverse2(a, r * columnsl, scale);
-                }
-                cdft2d_sub(1, a, scale);
-                rdft2d_sub(1, a);
-            }
-            fillSymmetric(a);
-        } else {
-            mixedRadixRealInverseFull(a, scale);
-        }
-    }
-
-    /**
-     * Computes 2D inverse DFT of real data leaving the result in <code>a</code>
-     * . This method computes full real inverse transform, i.e. you will get the
-     * same result as from <code>complexInverse</code> called with all imaginary
-     * part equal 0. Because the result is stored in <code>a</code>, the input
      * array must be of size rows by 2*columns, with only the first rows by
      * columns elements filled with real data.
-     *  
-     * @param a
-     *              data to transform
-     *  
-     * @param scale
-     *              if true then scaling is performed
+     *
+     * @param a     data to transform
+     * @param scale if true then scaling is performed
      */
-    public void realInverseFull(double[][] a, boolean scale)
-    {
+    public void realInverseFull(double[][] a, boolean scale) {
         if (isPowerOfTwo) {
             int nthreads = ConcurrencyUtils.getNumberOfThreads();
             if ((nthreads > 1) && useThreads) {
@@ -1307,8 +822,7 @@ public class DoubleFFT_2D
         }
     }
 
-    private void mixedRadixRealForwardFull(final double[][] a)
-    {
+    private void mixedRadixRealForwardFull(final double[][] a) {
         final int n2d2 = columns / 2 + 1;
         final double[][] temp = new double[n2d2][2 * rows];
 
@@ -1319,10 +833,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int i = firstRow; i < lastRow; i++) {
                             fftColumns.realForward(a[i]);
                         }
@@ -1331,9 +843,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -1346,10 +856,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstColumn = 1 + l * p;
                 final int lastColumn = (l == (nthreads - 1)) ? n2d2 - 1 : firstColumn + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int c = firstColumn; c < lastColumn; c++) {
                             int idx2 = 2 * c;
                             for (int r = 0; r < rows; r++) {
@@ -1364,9 +872,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -1392,10 +898,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int r = firstRow; r < lastRow; r++) {
                             int idx1 = 2 * r;
                             for (int c = 0; c < n2d2; c++) {
@@ -1409,19 +913,15 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = 1 + l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int r = firstRow; r < lastRow; r++) {
                             int idx3 = rows - r;
                             for (int c = n2d2; c < columns; c++) {
@@ -1438,9 +938,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -1506,8 +1004,7 @@ public class DoubleFFT_2D
         }
     }
 
-    private void mixedRadixRealForwardFull(final double[] a)
-    {
+    private void mixedRadixRealForwardFull(final double[] a) {
         final int rowStride = 2 * columns;
         final int n2d2 = columns / 2 + 1;
         final double[][] temp = new double[n2d2][2 * rows];
@@ -1519,10 +1016,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int i = firstRow; i < lastRow; i++) {
                             fftColumns.realForward(a, i * columns);
                         }
@@ -1531,9 +1026,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -1546,10 +1039,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstColumn = 1 + l * p;
                 final int lastColumn = (l == (nthreads - 1)) ? n2d2 - 1 : firstColumn + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int c = firstColumn; c < lastColumn; c++) {
                             int idx0 = 2 * c;
                             for (int r = 0; r < rows; r++) {
@@ -1565,9 +1056,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -1593,10 +1082,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int r = firstRow; r < lastRow; r++) {
                             int idx1 = 2 * r;
                             for (int c = 0; c < n2d2; c++) {
@@ -1611,19 +1098,15 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = 1 + l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int r = firstRow; r < lastRow; r++) {
                             int idx5 = r * rowStride;
                             int idx6 = (rows - r + 1) * rowStride;
@@ -1643,9 +1126,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -1715,218 +1196,7 @@ public class DoubleFFT_2D
         }
     }
 
-    private void mixedRadixRealForwardFull(final DoubleLargeArray a)
-    {
-        final long rowStride = 2 * columnsl;
-        final long n2d2 = columnsl / 2 + 1;
-        final DoubleLargeArray temp = new DoubleLargeArray(n2d2 * 2 * rowsl);
-        final long temp_stride = 2 * rowsl;
-
-        int nthreads = ConcurrencyUtils.getNumberOfThreads();
-        if ((nthreads > 1) && useThreads && (rowsl >= nthreads) && (n2d2 - 2 >= nthreads)) {
-            Future<?>[] futures = new Future[nthreads];
-            long p = rowsl / nthreads;
-            for (int l = 0; l < nthreads; l++) {
-                final long firstRow = l * p;
-                final long lastRow = (l == (nthreads - 1)) ? rowsl : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
-                        for (long i = firstRow; i < lastRow; i++) {
-                            fftColumns.realForward(a, i * columnsl);
-                        }
-                    }
-                });
-            }
-            try {
-                ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            for (long r = 0; r < rowsl; r++) {
-                temp.setDouble(r, a.getDouble(r * columnsl)); //first column is always real
-            }
-            fftRows.realForwardFull(temp);
-
-            p = (n2d2 - 2) / nthreads;
-            for (int l = 0; l < nthreads; l++) {
-                final long firstColumn = 1 + l * p;
-                final long lastColumn = (l == (nthreads - 1)) ? n2d2 - 1 : firstColumn + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
-                        for (long c = firstColumn; c < lastColumn; c++) {
-                            long idx0 = 2 * c;
-                            for (long r = 0; r < rowsl; r++) {
-                                long idx1 = 2 * r;
-                                long idx2 = r * columnsl + idx0;
-                                temp.setDouble(c * temp_stride + idx1, a.getDouble(idx2));
-                                temp.setDouble(c * temp_stride + idx1 + 1, a.getDouble(idx2 + 1));
-                            }
-                            fftRows.complexForward(temp, c * temp_stride);
-                        }
-                    }
-                });
-            }
-            try {
-                ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            if ((columnsl % 2) == 0) {
-                for (long r = 0; r < rowsl; r++) {
-                    temp.setDouble((n2d2 - 1) * temp_stride + r, a.getDouble(r * columnsl + 1));
-                    //imaginary part = 0;
-                }
-                fftRows.realForwardFull(temp, (n2d2 - 1) * temp_stride);
-
-            } else {
-                for (long r = 0; r < rowsl; r++) {
-                    long idx1 = 2 * r;
-                    long idx2 = r * columnsl;
-                    long idx3 = n2d2 - 1;
-                    temp.setDouble(idx3 * temp_stride + idx1, a.getDouble(idx2 + 2 * idx3));
-                    temp.setDouble(idx3 * temp_stride + idx1 + 1, a.getDouble(idx2 + 1));
-                }
-                fftRows.complexForward(temp, (n2d2 - 1) * temp_stride);
-            }
-
-            p = rowsl / nthreads;
-            for (int l = 0; l < nthreads; l++) {
-                final long firstRow = l * p;
-                final long lastRow = (l == (nthreads - 1)) ? rowsl : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
-                        for (long r = firstRow; r < lastRow; r++) {
-                            long idx1 = 2 * r;
-                            for (long c = 0; c < n2d2; c++) {
-                                long idx0 = 2 * c;
-                                long idx2 = r * rowStride + idx0;
-                                a.setDouble(idx2, temp.getDouble(c * temp_stride + idx1));
-                                a.setDouble(idx2 + 1, temp.getDouble(c * temp_stride + idx1 + 1));
-                            }
-                        }
-                    }
-                });
-            }
-            try {
-                ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            for (int l = 0; l < nthreads; l++) {
-                final long firstRow = 1 + l * p;
-                final long lastRow = (l == (nthreads - 1)) ? rowsl : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
-                        for (long r = firstRow; r < lastRow; r++) {
-                            long idx5 = r * rowStride;
-                            long idx6 = (rowsl - r + 1) * rowStride;
-                            for (long c = n2d2; c < columnsl; c++) {
-                                long idx1 = 2 * c;
-                                long idx2 = 2 * (columnsl - c);
-                                a.setDouble(idx1, a.getDouble(idx2));
-                                a.setDouble(idx1 + 1, -a.getDouble(idx2 + 1));
-                                long idx3 = idx5 + idx1;
-                                long idx4 = idx6 - idx1;
-                                a.setDouble(idx3, a.getDouble(idx4));
-                                a.setDouble(idx3 + 1, -a.getDouble(idx4 + 1));
-                            }
-                        }
-                    }
-                });
-            }
-            try {
-                ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-        } else {
-            for (long r = 0; r < rowsl; r++) {
-                fftColumns.realForward(a, r * columnsl);
-            }
-            for (long r = 0; r < rowsl; r++) {
-                temp.setDouble(r, a.getDouble(r * columnsl)); //first column is always real
-            }
-            fftRows.realForwardFull(temp);
-
-            for (long c = 1; c < n2d2 - 1; c++) {
-                long idx0 = 2 * c;
-                for (long r = 0; r < rowsl; r++) {
-                    long idx1 = 2 * r;
-                    long idx2 = r * columnsl + idx0;
-                    temp.setDouble(c * temp_stride + idx1, a.getDouble(idx2));
-                    temp.setDouble(c * temp_stride + idx1 + 1, a.getDouble(idx2 + 1));
-                }
-                fftRows.complexForward(temp, c * temp_stride);
-            }
-
-            if ((columnsl % 2) == 0) {
-                for (long r = 0; r < rowsl; r++) {
-                    temp.setDouble((n2d2 - 1) * temp_stride + r, a.getDouble(r * columnsl + 1));
-                    //imaginary part = 0;
-                }
-                fftRows.realForwardFull(temp, (n2d2 - 1) * temp_stride);
-
-            } else {
-                for (long r = 0; r < rowsl; r++) {
-                    long idx1 = 2 * r;
-                    long idx2 = r * columnsl;
-                    long idx3 = n2d2 - 1;
-                    temp.setDouble(idx3 * temp_stride + idx1, a.getDouble(idx2 + 2 * idx3));
-                    temp.setDouble(idx3 * temp_stride + idx1 + 1, a.getDouble(idx2 + 1));
-                }
-                fftRows.complexForward(temp, (n2d2 - 1) * temp_stride);
-            }
-
-            for (long r = 0; r < rowsl; r++) {
-                long idx1 = 2 * r;
-                for (long c = 0; c < n2d2; c++) {
-                    long idx0 = 2 * c;
-                    long idx2 = r * rowStride + idx0;
-                    a.setDouble(idx2, temp.getDouble(c * temp_stride + idx1));
-                    a.setDouble(idx2 + 1, temp.getDouble(c * temp_stride + idx1 + 1));
-                }
-            }
-
-            //fill symmetric
-            for (long r = 1; r < rowsl; r++) {
-                long idx5 = r * rowStride;
-                long idx6 = (rowsl - r + 1) * rowStride;
-                for (long c = n2d2; c < columnsl; c++) {
-                    long idx1 = 2 * c;
-                    long idx2 = 2 * (columnsl - c);
-                    a.setDouble(idx1, a.getDouble(idx2));
-                    a.setDouble(idx1 + 1, -a.getDouble(idx2 + 1));
-                    long idx3 = idx5 + idx1;
-                    long idx4 = idx6 - idx1;
-                    a.setDouble(idx3, a.getDouble(idx4));
-                    a.setDouble(idx3 + 1, -a.getDouble(idx4 + 1));
-                }
-            }
-        }
-    }
-
-    private void mixedRadixRealInverseFull(final double[][] a, final boolean scale)
-    {
+    private void mixedRadixRealInverseFull(final double[][] a, final boolean scale) {
         final int n2d2 = columns / 2 + 1;
         final double[][] temp = new double[n2d2][2 * rows];
 
@@ -1937,10 +1207,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int i = firstRow; i < lastRow; i++) {
                             fftColumns.realInverse2(a[i], 0, scale);
                         }
@@ -1949,9 +1217,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -1964,10 +1230,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstColumn = 1 + l * p;
                 final int lastColumn = (l == (nthreads - 1)) ? n2d2 - 1 : firstColumn + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int c = firstColumn; c < lastColumn; c++) {
                             int idx2 = 2 * c;
                             for (int r = 0; r < rows; r++) {
@@ -1982,9 +1246,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -2010,10 +1272,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int r = firstRow; r < lastRow; r++) {
                             int idx1 = 2 * r;
                             for (int c = 0; c < n2d2; c++) {
@@ -2027,19 +1287,15 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = 1 + l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int r = firstRow; r < lastRow; r++) {
                             int idx3 = rows - r;
                             for (int c = n2d2; c < columns; c++) {
@@ -2056,9 +1312,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -2124,8 +1378,7 @@ public class DoubleFFT_2D
         }
     }
 
-    private void mixedRadixRealInverseFull(final double[] a, final boolean scale)
-    {
+    private void mixedRadixRealInverseFull(final double[] a, final boolean scale) {
         final int rowStride = 2 * columns;
         final int n2d2 = columns / 2 + 1;
         final double[][] temp = new double[n2d2][2 * rows];
@@ -2137,10 +1390,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int i = firstRow; i < lastRow; i++) {
                             fftColumns.realInverse2(a, i * columns, scale);
                         }
@@ -2149,9 +1400,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -2164,10 +1413,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstColumn = 1 + l * p;
                 final int lastColumn = (l == (nthreads - 1)) ? n2d2 - 1 : firstColumn + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int c = firstColumn; c < lastColumn; c++) {
                             int idx0 = 2 * c;
                             for (int r = 0; r < rows; r++) {
@@ -2183,9 +1430,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -2211,10 +1456,8 @@ public class DoubleFFT_2D
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int r = firstRow; r < lastRow; r++) {
                             int idx1 = 2 * r;
                             for (int c = 0; c < n2d2; c++) {
@@ -2229,19 +1472,15 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
             for (int l = 0; l < nthreads; l++) {
                 final int firstRow = 1 + l * p;
                 final int lastRow = (l == (nthreads - 1)) ? rows : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[l] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         for (int r = firstRow; r < lastRow; r++) {
                             int idx5 = r * rowStride;
                             int idx6 = (rows - r + 1) * rowStride;
@@ -2261,9 +1500,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
@@ -2332,217 +1569,7 @@ public class DoubleFFT_2D
         }
     }
 
-    private void mixedRadixRealInverseFull(final DoubleLargeArray a, final boolean scale)
-    {
-        final long rowStride = 2 * columnsl;
-        final long n2d2 = columnsl / 2 + 1;
-        final DoubleLargeArray temp = new DoubleLargeArray(n2d2 * 2 * rowsl);
-        final long temp_stride = 2 * rowsl;
-
-        int nthreads = ConcurrencyUtils.getNumberOfThreads();
-        if ((nthreads > 1) && useThreads && (rowsl >= nthreads) && (n2d2 - 2 >= nthreads)) {
-            Future<?>[] futures = new Future[nthreads];
-            long p = rowsl / nthreads;
-            for (int l = 0; l < nthreads; l++) {
-                final long firstRow = l * p;
-                final long lastRow = (l == (nthreads - 1)) ? rowsl : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
-                        for (long i = firstRow; i < lastRow; i++) {
-                            fftColumns.realInverse2(a, i * columnsl, scale);
-                        }
-                    }
-                });
-            }
-            try {
-                ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            for (long r = 0; r < rowsl; r++) {
-                temp.setDouble(r, a.getDouble(r * columnsl)); //first column is always real
-            }
-            fftRows.realInverseFull(temp, scale);
-
-            p = (n2d2 - 2) / nthreads;
-            for (int l = 0; l < nthreads; l++) {
-                final long firstColumn = 1 + l * p;
-                final long lastColumn = (l == (nthreads - 1)) ? n2d2 - 1 : firstColumn + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
-                        for (long c = firstColumn; c < lastColumn; c++) {
-                            long idx0 = 2 * c;
-                            for (long r = 0; r < rowsl; r++) {
-                                long idx1 = 2 * r;
-                                long idx2 = r * columnsl + idx0;
-                                temp.setDouble(c * temp_stride + idx1, a.getDouble(idx2));
-                                temp.setDouble(c * temp_stride + idx1 + 1, a.getDouble(idx2 + 1));
-                            }
-                            fftRows.complexInverse(temp, c * temp_stride, scale);
-                        }
-                    }
-                });
-            }
-            try {
-                ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            if ((columnsl % 2) == 0) {
-                for (long r = 0; r < rowsl; r++) {
-                    temp.setDouble((n2d2 - 1) * temp_stride + r, a.getDouble(r * columnsl + 1));
-                    //imaginary part = 0;
-                }
-                fftRows.realInverseFull(temp, (n2d2 - 1) * temp_stride, scale);
-
-            } else {
-                for (long r = 0; r < rowsl; r++) {
-                    long idx1 = 2 * r;
-                    long idx2 = r * columnsl;
-                    long idx3 = n2d2 - 1;
-                    temp.setDouble(idx3 * temp_stride + idx1, a.getDouble(idx2 + 2 * idx3));
-                    temp.setDouble(idx3 * temp_stride + idx1 + 1, a.getDouble(idx2 + 1));
-                }
-                fftRows.complexInverse(temp, (n2d2 - 1) * temp_stride, scale);
-            }
-
-            p = rowsl / nthreads;
-            for (int l = 0; l < nthreads; l++) {
-                final long firstRow = l * p;
-                final long lastRow = (l == (nthreads - 1)) ? rowsl : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
-                        for (long r = firstRow; r < lastRow; r++) {
-                            long idx1 = 2 * r;
-                            for (long c = 0; c < n2d2; c++) {
-                                long idx0 = 2 * c;
-                                long idx2 = r * rowStride + idx0;
-                                a.setDouble(idx2, temp.getDouble(c * temp_stride + idx1));
-                                a.setDouble(idx2 + 1, temp.getDouble(c * temp_stride + idx1 + 1));
-                            }
-                        }
-                    }
-                });
-            }
-            try {
-                ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            for (int l = 0; l < nthreads; l++) {
-                final long firstRow = 1 + l * p;
-                final long lastRow = (l == (nthreads - 1)) ? rowsl : firstRow + p;
-                futures[l] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
-                        for (long r = firstRow; r < lastRow; r++) {
-                            long idx5 = r * rowStride;
-                            long idx6 = (rowsl - r + 1) * rowStride;
-                            for (long c = n2d2; c < columnsl; c++) {
-                                long idx1 = 2 * c;
-                                long idx2 = 2 * (columnsl - c);
-                                a.setDouble(idx1, a.getDouble(idx2));
-                                a.setDouble(idx1 + 1, -a.getDouble(idx2 + 1));
-                                long idx3 = idx5 + idx1;
-                                long idx4 = idx6 - idx1;
-                                a.setDouble(idx3, a.getDouble(idx4));
-                                a.setDouble(idx3 + 1, -a.getDouble(idx4 + 1));
-                            }
-                        }
-                    }
-                });
-            }
-            try {
-                ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } else {
-            for (long r = 0; r < rowsl; r++) {
-                fftColumns.realInverse2(a, r * columnsl, scale);
-            }
-            for (long r = 0; r < rowsl; r++) {
-                temp.setDouble(r, a.getDouble(r * columnsl)); //first column is always real
-            }
-            fftRows.realInverseFull(temp, scale);
-
-            for (long c = 1; c < n2d2 - 1; c++) {
-                long idx0 = 2 * c;
-                for (long r = 0; r < rowsl; r++) {
-                    long idx1 = 2 * r;
-                    long idx2 = r * columnsl + idx0;
-                    temp.setDouble(c * temp_stride + idx1, a.getDouble(idx2));
-                    temp.setDouble(c * temp_stride + idx1 + 1, a.getDouble(idx2 + 1));
-                }
-                fftRows.complexInverse(temp, c * temp_stride, scale);
-            }
-
-            if ((columnsl % 2) == 0) {
-                for (long r = 0; r < rowsl; r++) {
-                    temp.setDouble((n2d2 - 1) * temp_stride + r, a.getDouble(r * columnsl + 1));
-                    //imaginary part = 0;
-                }
-                fftRows.realInverseFull(temp, (n2d2 - 1) * temp_stride, scale);
-
-            } else {
-                for (long r = 0; r < rowsl; r++) {
-                    long idx1 = 2 * r;
-                    long idx2 = r * columnsl;
-                    long idx3 = n2d2 - 1;
-                    temp.setDouble(idx3 * temp_stride + idx1, a.getDouble(idx2 + 2 * idx3));
-                    temp.setDouble(idx3 * temp_stride + idx1 + 1, a.getDouble(idx2 + 1));
-                }
-                fftRows.complexInverse(temp, (n2d2 - 1) * temp_stride, scale);
-            }
-
-            for (long r = 0; r < rowsl; r++) {
-                long idx1 = 2 * r;
-                for (long c = 0; c < n2d2; c++) {
-                    long idx0 = 2 * c;
-                    long idx2 = r * rowStride + idx0;
-                    a.setDouble(idx2, temp.getDouble(c * temp_stride + idx1));
-                    a.setDouble(idx2 + 1, temp.getDouble(c * temp_stride + idx1 + 1));
-                }
-            }
-
-            //fill symmetric
-            for (long r = 1; r < rowsl; r++) {
-                long idx5 = r * rowStride;
-                long idx6 = (rowsl - r + 1) * rowStride;
-                for (long c = n2d2; c < columnsl; c++) {
-                    long idx1 = 2 * c;
-                    long idx2 = 2 * (columnsl - c);
-                    a.setDouble(idx1, a.getDouble(idx2));
-                    a.setDouble(idx1 + 1, -a.getDouble(idx2 + 1));
-                    long idx3 = idx5 + idx1;
-                    long idx4 = idx6 - idx1;
-                    a.setDouble(idx3, a.getDouble(idx4));
-                    a.setDouble(idx3 + 1, -a.getDouble(idx4 + 1));
-                }
-            }
-        }
-    }
-
-    private void rdft2d_sub(int isgn, double[] a)
-    {
+    private void rdft2d_sub(int isgn, double[] a) {
         int n1h, j;
         double xi;
         int idx1, idx2;
@@ -2573,40 +1600,7 @@ public class DoubleFFT_2D
         }
     }
 
-    private void rdft2d_sub(int isgn, DoubleLargeArray a)
-    {
-        long n1h, j;
-        double xi;
-        long idx1, idx2;
-
-        n1h = rowsl >> 1;
-        if (isgn < 0) {
-            for (long i = 1; i < n1h; i++) {
-                j = rowsl - i;
-                idx1 = i * columnsl;
-                idx2 = j * columnsl;
-                xi = a.getDouble(idx1) - a.getDouble(idx2);
-                a.setDouble(idx1, a.getDouble(idx1) + a.getDouble(idx2));
-                a.setDouble(idx2, xi);
-                xi = a.getDouble(idx2 + 1) - a.getDouble(idx1 + 1);
-                a.setDouble(idx1 + 1, a.getDouble(idx1 + 1) + a.getDouble(idx2 + 1));
-                a.setDouble(idx2 + 1, xi);
-            }
-        } else {
-            for (long i = 1; i < n1h; i++) {
-                j = rowsl - i;
-                idx1 = i * columnsl;
-                idx2 = j * columnsl;
-                a.setDouble(idx2, 0.5f * (a.getDouble(idx1) - a.getDouble(idx2)));
-                a.setDouble(idx1, a.getDouble(idx1) - a.getDouble(idx2));
-                a.setDouble(idx2 + 1, 0.5f * (a.getDouble(idx1 + 1) + a.getDouble(idx2 + 1)));
-                a.setDouble(idx1 + 1, a.getDouble(idx1 + 1) - a.getDouble(idx2 + 1));
-            }
-        }
-    }
-
-    private void rdft2d_sub(int isgn, double[][] a)
-    {
+    private void rdft2d_sub(int isgn, double[][] a) {
         int n1h, j;
         double xi;
 
@@ -2632,8 +1626,7 @@ public class DoubleFFT_2D
         }
     }
 
-    private void cdft2d_sub(int isgn, double[] a, boolean scale)
-    {
+    private void cdft2d_sub(int isgn, double[] a, boolean scale) {
         int idx1, idx2, idx3, idx4, idx5;
         int nt = 8 * rows;
         if (columns == 4) {
@@ -2791,167 +1784,7 @@ public class DoubleFFT_2D
         }
     }
 
-    private void cdft2d_sub(int isgn, DoubleLargeArray a, boolean scale)
-    {
-        long idx1, idx2, idx3, idx4, idx5;
-        long nt = 8 * rowsl;
-        if (columnsl == 4) {
-            nt >>= 1;
-        } else if (columnsl < 4) {
-            nt >>= 2;
-        }
-        DoubleLargeArray t = new DoubleLargeArray(nt);
-        if (isgn == -1) {
-            if (columnsl > 4) {
-                for (long c = 0; c < columnsl; c += 8) {
-                    for (long r = 0; r < rowsl; r++) {
-                        idx1 = r * columnsl + c;
-                        idx2 = 2 * r;
-                        idx3 = 2 * rowsl + 2 * r;
-                        idx4 = idx3 + 2 * rowsl;
-                        idx5 = idx4 + 2 * rowsl;
-                        t.setDouble(idx2, a.getDouble(idx1));
-                        t.setDouble(idx2 + 1, a.getDouble(idx1 + 1));
-                        t.setDouble(idx3, a.getDouble(idx1 + 2));
-                        t.setDouble(idx3 + 1, a.getDouble(idx1 + 3));
-                        t.setDouble(idx4, a.getDouble(idx1 + 4));
-                        t.setDouble(idx4 + 1, a.getDouble(idx1 + 5));
-                        t.setDouble(idx5, a.getDouble(idx1 + 6));
-                        t.setDouble(idx5 + 1, a.getDouble(idx1 + 7));
-                    }
-                    fftRows.complexForward(t, 0);
-                    fftRows.complexForward(t, 2 * rowsl);
-                    fftRows.complexForward(t, 4 * rowsl);
-                    fftRows.complexForward(t, 6 * rowsl);
-                    for (long r = 0; r < rowsl; r++) {
-                        idx1 = r * columnsl + c;
-                        idx2 = 2 * r;
-                        idx3 = 2 * rowsl + 2 * r;
-                        idx4 = idx3 + 2 * rowsl;
-                        idx5 = idx4 + 2 * rowsl;
-                        a.setDouble(idx1, t.getDouble(idx2));
-                        a.setDouble(idx1 + 1, t.getDouble(idx2 + 1));
-                        a.setDouble(idx1 + 2, t.getDouble(idx3));
-                        a.setDouble(idx1 + 3, t.getDouble(idx3 + 1));
-                        a.setDouble(idx1 + 4, t.getDouble(idx4));
-                        a.setDouble(idx1 + 5, t.getDouble(idx4 + 1));
-                        a.setDouble(idx1 + 6, t.getDouble(idx5));
-                        a.setDouble(idx1 + 7, t.getDouble(idx5 + 1));
-                    }
-                }
-            } else if (columnsl == 4) {
-                for (long r = 0; r < rowsl; r++) {
-                    idx1 = r * columnsl;
-                    idx2 = 2 * r;
-                    idx3 = 2 * rowsl + 2 * r;
-                    t.setDouble(idx2, a.getDouble(idx1));
-                    t.setDouble(idx2 + 1, a.getDouble(idx1 + 1));
-                    t.setDouble(idx3, a.getDouble(idx1 + 2));
-                    t.setDouble(idx3 + 1, a.getDouble(idx1 + 3));
-                }
-                fftRows.complexForward(t, 0);
-                fftRows.complexForward(t, 2 * rowsl);
-                for (long r = 0; r < rowsl; r++) {
-                    idx1 = r * columnsl;
-                    idx2 = 2 * r;
-                    idx3 = 2 * rowsl + 2 * r;
-                    a.setDouble(idx1, t.getDouble(idx2));
-                    a.setDouble(idx1 + 1, t.getDouble(idx2 + 1));
-                    a.setDouble(idx1 + 2, t.getDouble(idx3));
-                    a.setDouble(idx1 + 3, t.getDouble(idx3 + 1));
-                }
-            } else if (columnsl == 2) {
-                for (long r = 0; r < rowsl; r++) {
-                    idx1 = r * columnsl;
-                    idx2 = 2 * r;
-                    t.setDouble(idx2, a.getDouble(idx1));
-                    t.setDouble(idx2 + 1, a.getDouble(idx1 + 1));
-                }
-                fftRows.complexForward(t, 0);
-                for (long r = 0; r < rowsl; r++) {
-                    idx1 = r * columnsl;
-                    idx2 = 2 * r;
-                    a.setDouble(idx1, t.getDouble(idx2));
-                    a.setDouble(idx1 + 1, t.getDouble(idx2 + 1));
-                }
-            }
-        } else if (columnsl > 4) {
-            for (long c = 0; c < columnsl; c += 8) {
-                for (long r = 0; r < rowsl; r++) {
-                    idx1 = r * columnsl + c;
-                    idx2 = 2 * r;
-                    idx3 = 2 * rowsl + 2 * r;
-                    idx4 = idx3 + 2 * rowsl;
-                    idx5 = idx4 + 2 * rowsl;
-                    t.setDouble(idx2, a.getDouble(idx1));
-                    t.setDouble(idx2 + 1, a.getDouble(idx1 + 1));
-                    t.setDouble(idx3, a.getDouble(idx1 + 2));
-                    t.setDouble(idx3 + 1, a.getDouble(idx1 + 3));
-                    t.setDouble(idx4, a.getDouble(idx1 + 4));
-                    t.setDouble(idx4 + 1, a.getDouble(idx1 + 5));
-                    t.setDouble(idx5, a.getDouble(idx1 + 6));
-                    t.setDouble(idx5 + 1, a.getDouble(idx1 + 7));
-                }
-                fftRows.complexInverse(t, 0, scale);
-                fftRows.complexInverse(t, 2 * rowsl, scale);
-                fftRows.complexInverse(t, 4 * rowsl, scale);
-                fftRows.complexInverse(t, 6 * rowsl, scale);
-                for (long r = 0; r < rowsl; r++) {
-                    idx1 = r * columnsl + c;
-                    idx2 = 2 * r;
-                    idx3 = 2 * rowsl + 2 * r;
-                    idx4 = idx3 + 2 * rowsl;
-                    idx5 = idx4 + 2 * rowsl;
-                    a.setDouble(idx1, t.getDouble(idx2));
-                    a.setDouble(idx1 + 1, t.getDouble(idx2 + 1));
-                    a.setDouble(idx1 + 2, t.getDouble(idx3));
-                    a.setDouble(idx1 + 3, t.getDouble(idx3 + 1));
-                    a.setDouble(idx1 + 4, t.getDouble(idx4));
-                    a.setDouble(idx1 + 5, t.getDouble(idx4 + 1));
-                    a.setDouble(idx1 + 6, t.getDouble(idx5));
-                    a.setDouble(idx1 + 7, t.getDouble(idx5 + 1));
-                }
-            }
-        } else if (columnsl == 4) {
-            for (long r = 0; r < rowsl; r++) {
-                idx1 = r * columnsl;
-                idx2 = 2 * r;
-                idx3 = 2 * rowsl + 2 * r;
-                t.setDouble(idx2, a.getDouble(idx1));
-                t.setDouble(idx2 + 1, a.getDouble(idx1 + 1));
-                t.setDouble(idx3, a.getDouble(idx1 + 2));
-                t.setDouble(idx3 + 1, a.getDouble(idx1 + 3));
-            }
-            fftRows.complexInverse(t, 0, scale);
-            fftRows.complexInverse(t, 2 * rowsl, scale);
-            for (long r = 0; r < rowsl; r++) {
-                idx1 = r * columnsl;
-                idx2 = 2 * r;
-                idx3 = 2 * rowsl + 2 * r;
-                a.setDouble(idx1, t.getDouble(idx2));
-                a.setDouble(idx1 + 1, t.getDouble(idx2 + 1));
-                a.setDouble(idx1 + 2, t.getDouble(idx3));
-                a.setDouble(idx1 + 3, t.getDouble(idx3 + 1));
-            }
-        } else if (columnsl == 2) {
-            for (long r = 0; r < rowsl; r++) {
-                idx1 = r * columnsl;
-                idx2 = 2 * r;
-                t.setDouble(idx2, a.getDouble(idx1));
-                t.setDouble(idx2 + 1, a.getDouble(idx1 + 1));
-            }
-            fftRows.complexInverse(t, 0, scale);
-            for (long r = 0; r < rowsl; r++) {
-                idx1 = r * columnsl;
-                idx2 = 2 * r;
-                a.setDouble(idx1, t.getDouble(idx2));
-                a.setDouble(idx1 + 1, t.getDouble(idx2 + 1));
-            }
-        }
-    }
-
-    private void cdft2d_sub(int isgn, double[][] a, boolean scale)
-    {
+    private void cdft2d_sub(int isgn, double[][] a, boolean scale) {
         int idx2, idx3, idx4, idx5;
         int nt = 8 * rows;
         if (columns == 4) {
@@ -3097,17 +1930,14 @@ public class DoubleFFT_2D
         }
     }
 
-    private void xdft2d0_subth1(final int icr, final int isgn, final double[] a, final boolean scale)
-    {
-        final int nthreads = ConcurrencyUtils.getNumberOfThreads() > rows ? rows : ConcurrencyUtils.getNumberOfThreads();
+    private void xdft2d0_subth1(final int icr, final int isgn, final double[] a, final boolean scale) {
+        final int nthreads = Math.min(ConcurrencyUtils.getNumberOfThreads(), rows);
 
         Future<?>[] futures = new Future[nthreads];
         for (int i = 0; i < nthreads; i++) {
             final int n0 = i;
-            futures[i] = ConcurrencyUtils.submit(new Runnable()
-            {
-                public void run()
-                {
+            futures[i] = ConcurrencyUtils.submit(new Runnable() {
+                public void run() {
                     if (icr == 0) {
                         if (isgn == -1) {
                             for (int r = n0; r < rows; r += nthreads) {
@@ -3132,66 +1962,19 @@ public class DoubleFFT_2D
         }
         try {
             ConcurrencyUtils.waitForCompletion(futures);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ExecutionException ex) {
+        } catch (InterruptedException | ExecutionException ex) {
             Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void xdft2d0_subth1(final long icr, final int isgn, final DoubleLargeArray a, final boolean scale)
-    {
-        final int nthreads = (int) (ConcurrencyUtils.getNumberOfThreads() > rowsl ? rowsl : ConcurrencyUtils.getNumberOfThreads());
+    private void xdft2d0_subth2(final int icr, final int isgn, final double[] a, final boolean scale) {
+        final int nthreads = Math.min(ConcurrencyUtils.getNumberOfThreads(), rows);
 
         Future<?>[] futures = new Future[nthreads];
         for (int i = 0; i < nthreads; i++) {
             final int n0 = i;
-            futures[i] = ConcurrencyUtils.submit(new Runnable()
-            {
-                public void run()
-                {
-                    if (icr == 0) {
-                        if (isgn == -1) {
-                            for (long r = n0; r < rowsl; r += nthreads) {
-                                fftColumns.complexForward(a, r * columnsl);
-                            }
-                        } else {
-                            for (long r = n0; r < rowsl; r += nthreads) {
-                                fftColumns.complexInverse(a, r * columnsl, scale);
-                            }
-                        }
-                    } else if (isgn == 1) {
-                        for (long r = n0; r < rowsl; r += nthreads) {
-                            fftColumns.realForward(a, r * columnsl);
-                        }
-                    } else {
-                        for (long r = n0; r < rowsl; r += nthreads) {
-                            fftColumns.realInverse(a, r * columnsl, scale);
-                        }
-                    }
-                }
-            });
-        }
-        try {
-            ConcurrencyUtils.waitForCompletion(futures);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ExecutionException ex) {
-            Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    private void xdft2d0_subth2(final int icr, final int isgn, final double[] a, final boolean scale)
-    {
-        final int nthreads = ConcurrencyUtils.getNumberOfThreads() > rows ? rows : ConcurrencyUtils.getNumberOfThreads();
-
-        Future<?>[] futures = new Future[nthreads];
-        for (int i = 0; i < nthreads; i++) {
-            final int n0 = i;
-            futures[i] = ConcurrencyUtils.submit(new Runnable()
-            {
-                public void run()
-                {
+            futures[i] = ConcurrencyUtils.submit(new Runnable() {
+                public void run() {
                     if (icr == 0) {
                         if (isgn == -1) {
                             for (int r = n0; r < rows; r += nthreads) {
@@ -3216,66 +1999,19 @@ public class DoubleFFT_2D
         }
         try {
             ConcurrencyUtils.waitForCompletion(futures);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ExecutionException ex) {
+        } catch (InterruptedException | ExecutionException ex) {
             Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void xdft2d0_subth2(final long icr, final int isgn, final DoubleLargeArray a, final boolean scale)
-    {
-        final int nthreads = ConcurrencyUtils.getNumberOfThreads() > rows ? rows : ConcurrencyUtils.getNumberOfThreads();
-
-        Future<?>[] futures = new Future[nthreads];
-        for (int i = 0; i < nthreads; i++) {
-            final long n0 = i;
-            futures[i] = ConcurrencyUtils.submit(new Runnable()
-            {
-                public void run()
-                {
-                    if (icr == 0) {
-                        if (isgn == -1) {
-                            for (long r = n0; r < rowsl; r += nthreads) {
-                                fftColumns.complexForward(a, r * columnsl);
-                            }
-                        } else {
-                            for (long r = n0; r < rowsl; r += nthreads) {
-                                fftColumns.complexInverse(a, r * columnsl, scale);
-                            }
-                        }
-                    } else if (isgn == 1) {
-                        for (long r = n0; r < rowsl; r += nthreads) {
-                            fftColumns.realForward(a, r * columnsl);
-                        }
-                    } else {
-                        for (long r = n0; r < rowsl; r += nthreads) {
-                            fftColumns.realInverse2(a, r * columnsl, scale);
-                        }
-                    }
-                }
-            });
-        }
-        try {
-            ConcurrencyUtils.waitForCompletion(futures);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ExecutionException ex) {
-            Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    private void xdft2d0_subth1(final int icr, final int isgn, final double[][] a, final boolean scale)
-    {
-        final int nthreads = ConcurrencyUtils.getNumberOfThreads() > rows ? rows : ConcurrencyUtils.getNumberOfThreads();
+    private void xdft2d0_subth1(final int icr, final int isgn, final double[][] a, final boolean scale) {
+        final int nthreads = Math.min(ConcurrencyUtils.getNumberOfThreads(), rows);
 
         Future<?>[] futures = new Future[nthreads];
         for (int i = 0; i < nthreads; i++) {
             final int n0 = i;
-            futures[i] = ConcurrencyUtils.submit(new Runnable()
-            {
-                public void run()
-                {
+            futures[i] = ConcurrencyUtils.submit(new Runnable() {
+                public void run() {
                     if (icr == 0) {
                         if (isgn == -1) {
                             for (int r = n0; r < rows; r += nthreads) {
@@ -3300,24 +2036,19 @@ public class DoubleFFT_2D
         }
         try {
             ConcurrencyUtils.waitForCompletion(futures);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ExecutionException ex) {
+        } catch (InterruptedException | ExecutionException ex) {
             Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void xdft2d0_subth2(final int icr, final int isgn, final double[][] a, final boolean scale)
-    {
-        final int nthreads = ConcurrencyUtils.getNumberOfThreads() > rows ? rows : ConcurrencyUtils.getNumberOfThreads();
+    private void xdft2d0_subth2(final int icr, final int isgn, final double[][] a, final boolean scale) {
+        final int nthreads = Math.min(ConcurrencyUtils.getNumberOfThreads(), rows);
 
         Future<?>[] futures = new Future[nthreads];
         for (int i = 0; i < nthreads; i++) {
             final int n0 = i;
-            futures[i] = ConcurrencyUtils.submit(new Runnable()
-            {
-                public void run()
-                {
+            futures[i] = ConcurrencyUtils.submit(new Runnable() {
+                public void run() {
                     if (icr == 0) {
                         if (isgn == -1) {
                             for (int r = n0; r < rows; r += nthreads) {
@@ -3342,15 +2073,12 @@ public class DoubleFFT_2D
         }
         try {
             ConcurrencyUtils.waitForCompletion(futures);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ExecutionException ex) {
+        } catch (InterruptedException | ExecutionException ex) {
             Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void cdft2d_subth(final int isgn, final double[] a, final boolean scale)
-    {
+    private void cdft2d_subth(final int isgn, final double[] a, final boolean scale) {
         int nthread = min(columns / 2, ConcurrencyUtils.getNumberOfThreads());
         int nt = 8 * rows;
         if (columns == 4) {
@@ -3363,10 +2091,8 @@ public class DoubleFFT_2D
         final int nthreads = nthread;
         for (int i = 0; i < nthread; i++) {
             final int n0 = i;
-            futures[i] = ConcurrencyUtils.submit(new Runnable()
-            {
-                public void run()
-                {
+            futures[i] = ConcurrencyUtils.submit(new Runnable() {
+                public void run() {
                     int idx1, idx2, idx3, idx4, idx5;
                     double[] t = new double[ntf];
                     if (isgn == -1) {
@@ -3521,194 +2247,12 @@ public class DoubleFFT_2D
         }
         try {
             ConcurrencyUtils.waitForCompletion(futures);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ExecutionException ex) {
+        } catch (InterruptedException | ExecutionException ex) {
             Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void cdft2d_subth(final int isgn, final DoubleLargeArray a, final boolean scale)
-    {
-        int nthread = (int) min(columnsl / 2, ConcurrencyUtils.getNumberOfThreads());
-        long nt = 8 * rowsl;
-        if (columnsl == 4) {
-            nt >>= 1;
-        } else if (columnsl < 4) {
-            nt >>= 2;
-        }
-        final long ntf = nt;
-        Future<?>[] futures = new Future[nthread];
-        final int nthreads = nthread;
-        for (int i = 0; i < nthread; i++) {
-            final long n0 = i;
-            futures[i] = ConcurrencyUtils.submit(new Runnable()
-            {
-                public void run()
-                {
-                    long idx1, idx2, idx3, idx4, idx5;
-                    DoubleLargeArray t = new DoubleLargeArray(ntf);
-                    if (isgn == -1) {
-                        if (columnsl > 4 * nthreads) {
-                            for (long c = 8 * n0; c < columnsl; c += 8 * nthreads) {
-                                for (long r = 0; r < rowsl; r++) {
-                                    idx1 = r * columnsl + c;
-                                    idx2 = 2 * r;
-                                    idx3 = 2 * rowsl + 2 * r;
-                                    idx4 = idx3 + 2 * rowsl;
-                                    idx5 = idx4 + 2 * rowsl;
-                                    t.setDouble(idx2, a.getDouble(idx1));
-                                    t.setDouble(idx2 + 1, a.getDouble(idx1 + 1));
-                                    t.setDouble(idx3, a.getDouble(idx1 + 2));
-                                    t.setDouble(idx3 + 1, a.getDouble(idx1 + 3));
-                                    t.setDouble(idx4, a.getDouble(idx1 + 4));
-                                    t.setDouble(idx4 + 1, a.getDouble(idx1 + 5));
-                                    t.setDouble(idx5, a.getDouble(idx1 + 6));
-                                    t.setDouble(idx5 + 1, a.getDouble(idx1 + 7));
-                                }
-                                fftRows.complexForward(t, 0);
-                                fftRows.complexForward(t, 2 * rowsl);
-                                fftRows.complexForward(t, 4 * rowsl);
-                                fftRows.complexForward(t, 6 * rowsl);
-                                for (long r = 0; r < rowsl; r++) {
-                                    idx1 = r * columnsl + c;
-                                    idx2 = 2 * r;
-                                    idx3 = 2 * rowsl + 2 * r;
-                                    idx4 = idx3 + 2 * rowsl;
-                                    idx5 = idx4 + 2 * rowsl;
-                                    a.setDouble(idx1, t.getDouble(idx2));
-                                    a.setDouble(idx1 + 1, t.getDouble(idx2 + 1));
-                                    a.setDouble(idx1 + 2, t.getDouble(idx3));
-                                    a.setDouble(idx1 + 3, t.getDouble(idx3 + 1));
-                                    a.setDouble(idx1 + 4, t.getDouble(idx4));
-                                    a.setDouble(idx1 + 5, t.getDouble(idx4 + 1));
-                                    a.setDouble(idx1 + 6, t.getDouble(idx5));
-                                    a.setDouble(idx1 + 7, t.getDouble(idx5 + 1));
-                                }
-                            }
-                        } else if (columnsl == 4 * nthreads) {
-                            for (long r = 0; r < rowsl; r++) {
-                                idx1 = r * columnsl + 4 * n0;
-                                idx2 = 2 * r;
-                                idx3 = 2 * rowsl + 2 * r;
-                                t.setDouble(idx2, a.getDouble(idx1));
-                                t.setDouble(idx2 + 1, a.getDouble(idx1 + 1));
-                                t.setDouble(idx3, a.getDouble(idx1 + 2));
-                                t.setDouble(idx3 + 1, a.getDouble(idx1 + 3));
-                            }
-                            fftRows.complexForward(t, 0);
-                            fftRows.complexForward(t, 2 * rowsl);
-                            for (long r = 0; r < rowsl; r++) {
-                                idx1 = r * columnsl + 4 * n0;
-                                idx2 = 2 * r;
-                                idx3 = 2 * rowsl + 2 * r;
-                                a.setDouble(idx1, t.getDouble(idx2));
-                                a.setDouble(idx1 + 1, t.getDouble(idx2 + 1));
-                                a.setDouble(idx1 + 2, t.getDouble(idx3));
-                                a.setDouble(idx1 + 3, t.getDouble(idx3 + 1));
-                            }
-                        } else if (columnsl == 2 * nthreads) {
-                            for (long r = 0; r < rowsl; r++) {
-                                idx1 = r * columnsl + 2 * n0;
-                                idx2 = 2 * r;
-                                t.setDouble(idx2, a.getDouble(idx1));
-                                t.setDouble(idx2 + 1, a.getDouble(idx1 + 1));
-                            }
-                            fftRows.complexForward(t, 0);
-                            for (long r = 0; r < rowsl; r++) {
-                                idx1 = r * columnsl + 2 * n0;
-                                idx2 = 2 * r;
-                                a.setDouble(idx1, t.getDouble(idx2));
-                                a.setDouble(idx1 + 1, t.getDouble(idx2 + 1));
-                            }
-                        }
-                    } else if (columnsl > 4 * nthreads) {
-                        for (long c = 8 * n0; c < columnsl; c += 8 * nthreads) {
-                            for (long r = 0; r < rowsl; r++) {
-                                idx1 = r * columnsl + c;
-                                idx2 = 2 * r;
-                                idx3 = 2 * rowsl + 2 * r;
-                                idx4 = idx3 + 2 * rowsl;
-                                idx5 = idx4 + 2 * rowsl;
-                                t.setDouble(idx2, a.getDouble(idx1));
-                                t.setDouble(idx2 + 1, a.getDouble(idx1 + 1));
-                                t.setDouble(idx3, a.getDouble(idx1 + 2));
-                                t.setDouble(idx3 + 1, a.getDouble(idx1 + 3));
-                                t.setDouble(idx4, a.getDouble(idx1 + 4));
-                                t.setDouble(idx4 + 1, a.getDouble(idx1 + 5));
-                                t.setDouble(idx5, a.getDouble(idx1 + 6));
-                                t.setDouble(idx5 + 1, a.getDouble(idx1 + 7));
-                            }
-                            fftRows.complexInverse(t, 0, scale);
-                            fftRows.complexInverse(t, 2 * rowsl, scale);
-                            fftRows.complexInverse(t, 4 * rowsl, scale);
-                            fftRows.complexInverse(t, 6 * rowsl, scale);
-                            for (long r = 0; r < rowsl; r++) {
-                                idx1 = r * columnsl + c;
-                                idx2 = 2 * r;
-                                idx3 = 2 * rowsl + 2 * r;
-                                idx4 = idx3 + 2 * rowsl;
-                                idx5 = idx4 + 2 * rowsl;
-                                a.setDouble(idx1, t.getDouble(idx2));
-                                a.setDouble(idx1 + 1, t.getDouble(idx2 + 1));
-                                a.setDouble(idx1 + 2, t.getDouble(idx3));
-                                a.setDouble(idx1 + 3, t.getDouble(idx3 + 1));
-                                a.setDouble(idx1 + 4, t.getDouble(idx4));
-                                a.setDouble(idx1 + 5, t.getDouble(idx4 + 1));
-                                a.setDouble(idx1 + 6, t.getDouble(idx5));
-                                a.setDouble(idx1 + 7, t.getDouble(idx5 + 1));
-                            }
-                        }
-                    } else if (columnsl == 4 * nthreads) {
-                        for (long r = 0; r < rowsl; r++) {
-                            idx1 = r * columnsl + 4 * n0;
-                            idx2 = 2 * r;
-                            idx3 = 2 * rowsl + 2 * r;
-                            t.setDouble(idx2, a.getDouble(idx1));
-                            t.setDouble(idx2 + 1, a.getDouble(idx1 + 1));
-                            t.setDouble(idx3, a.getDouble(idx1 + 2));
-                            t.setDouble(idx3 + 1, a.getDouble(idx1 + 3));
-                        }
-                        fftRows.complexInverse(t, 0, scale);
-                        fftRows.complexInverse(t, 2 * rowsl, scale);
-                        for (long r = 0; r < rowsl; r++) {
-                            idx1 = r * columnsl + 4 * n0;
-                            idx2 = 2 * r;
-                            idx3 = 2 * rowsl + 2 * r;
-                            a.setDouble(idx1, t.getDouble(idx2));
-                            a.setDouble(idx1 + 1, t.getDouble(idx2 + 1));
-                            a.setDouble(idx1 + 2, t.getDouble(idx3));
-                            a.setDouble(idx1 + 3, t.getDouble(idx3 + 1));
-                        }
-                    } else if (columnsl == 2 * nthreads) {
-                        for (long r = 0; r < rowsl; r++) {
-                            idx1 = r * columnsl + 2 * n0;
-                            idx2 = 2 * r;
-                            t.setDouble(idx2, a.getDouble(idx1));
-                            t.setDouble(idx2 + 1, a.getDouble(idx1 + 1));
-                        }
-                        fftRows.complexInverse(t, 0, scale);
-                        for (long r = 0; r < rowsl; r++) {
-                            idx1 = r * columnsl + 2 * n0;
-                            idx2 = 2 * r;
-                            a.setDouble(idx1, t.getDouble(idx2));
-                            a.setDouble(idx1 + 1, t.getDouble(idx2 + 1));
-                        }
-                    }
-                }
-            });
-        }
-        try {
-            ConcurrencyUtils.waitForCompletion(futures);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ExecutionException ex) {
-            Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    private void cdft2d_subth(final int isgn, final double[][] a, final boolean scale)
-    {
+    private void cdft2d_subth(final int isgn, final double[][] a, final boolean scale) {
         int nthread = min(columns / 2, ConcurrencyUtils.getNumberOfThreads());
         int nt = 8 * rows;
         if (columns == 4) {
@@ -3721,10 +2265,8 @@ public class DoubleFFT_2D
         final int nthreads = nthread;
         for (int i = 0; i < nthreads; i++) {
             final int n0 = i;
-            futures[i] = ConcurrencyUtils.submit(new Runnable()
-            {
-                public void run()
-                {
+            futures[i] = ConcurrencyUtils.submit(new Runnable() {
+                public void run() {
                     int idx2, idx3, idx4, idx5;
                     double[] t = new double[ntf];
                     if (isgn == -1) {
@@ -3867,15 +2409,12 @@ public class DoubleFFT_2D
         }
         try {
             ConcurrencyUtils.waitForCompletion(futures);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ExecutionException ex) {
+        } catch (InterruptedException | ExecutionException ex) {
             Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void fillSymmetric(final double[] a)
-    {
+    private void fillSymmetric(final double[] a) {
         final int twon2 = 2 * columns;
         int idx1, idx2, idx3, idx4;
         int n1d2 = rows / 2;
@@ -3909,10 +2448,8 @@ public class DoubleFFT_2D
                 } else {
                     l2stopa = i * l1k + l1k;
                 }
-                futures[i] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[i] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         int idx1, idx2, idx3, idx4;
 
                         for (int r = l1offa; r < l1stopa; r++) {
@@ -3948,9 +2485,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -3991,125 +2526,7 @@ public class DoubleFFT_2D
         a[idx1 + columns + 1] = 0;
     }
 
-    private void fillSymmetric(final DoubleLargeArray a)
-    {
-        final long twon2 = 2 * columnsl;
-        long idx1, idx2, idx3, idx4;
-        long n1d2 = rowsl / 2;
-
-        for (long r = (rowsl - 1); r >= 1; r--) {
-            idx1 = r * columnsl;
-            idx2 = 2 * idx1;
-            for (long c = 0; c < columnsl; c += 2) {
-                a.setDouble(idx2 + c, a.getDouble(idx1 + c));
-                a.setDouble(idx1 + c, 0);
-                a.setDouble(idx2 + c + 1, a.getDouble(idx1 + c + 1));
-                a.setDouble(idx1 + c + 1, 0);
-            }
-        }
-        int nthreads = ConcurrencyUtils.getNumberOfThreads();
-        if ((nthreads > 1) && useThreads && (n1d2 >= nthreads)) {
-            Future<?>[] futures = new Future[nthreads];
-            long l1k = n1d2 / nthreads;
-            final long newn2 = 2 * columnsl;
-            for (int i = 0; i < nthreads; i++) {
-                final long l1offa, l1stopa, l2offa, l2stopa;
-                if (i == 0)
-                    l1offa = i * l1k + 1;
-                else {
-                    l1offa = i * l1k;
-                }
-                l1stopa = i * l1k + l1k;
-                l2offa = i * l1k;
-                if (i == nthreads - 1) {
-                    l2stopa = i * l1k + l1k + 1;
-                } else {
-                    l2stopa = i * l1k + l1k;
-                }
-                futures[i] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
-                        long idx1, idx2, idx3, idx4;
-
-                        for (long r = l1offa; r < l1stopa; r++) {
-                            idx1 = r * newn2;
-                            idx2 = (rowsl - r) * newn2;
-                            idx3 = idx1 + columnsl;
-                            a.setDouble(idx3, a.getDouble(idx2 + 1));
-                            a.setDouble(idx3 + 1, -a.getDouble(idx2));
-                        }
-                        for (long r = l1offa; r < l1stopa; r++) {
-                            idx1 = r * newn2;
-                            idx3 = (rowsl - r + 1) * newn2;
-                            for (long c = columnsl + 2; c < newn2; c += 2) {
-                                idx2 = idx3 - c;
-                                idx4 = idx1 + c;
-                                a.setDouble(idx4, a.getDouble(idx2));
-                                a.setDouble(idx4 + 1, -a.getDouble(idx2 + 1));
-
-                            }
-                        }
-                        for (long r = l2offa; r < l2stopa; r++) {
-                            idx3 = ((rowsl - r) % rowsl) * newn2;
-                            idx4 = r * newn2;
-                            for (long c = 0; c < newn2; c += 2) {
-                                idx1 = idx3 + (newn2 - c) % newn2;
-                                idx2 = idx4 + c;
-                                a.setDouble(idx1, a.getDouble(idx2));
-                                a.setDouble(idx1 + 1, -a.getDouble(idx2 + 1));
-                            }
-                        }
-                    }
-                });
-            }
-            try {
-                ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-        } else {
-
-            for (long r = 1; r < n1d2; r++) {
-                idx2 = r * twon2;
-                idx3 = (rowsl - r) * twon2;
-                a.setDouble(idx2 + columnsl, a.getDouble(idx3 + 1));
-                a.setDouble(idx2 + columnsl + 1, -a.getDouble(idx3));
-            }
-
-            for (long r = 1; r < n1d2; r++) {
-                idx2 = r * twon2;
-                idx3 = (rowsl - r + 1) * twon2;
-                for (long c = columnsl + 2; c < twon2; c += 2) {
-                    a.setDouble(idx2 + c, a.getDouble(idx3 - c));
-                    a.setDouble(idx2 + c + 1, -a.getDouble(idx3 - c + 1));
-
-                }
-            }
-            for (long r = 0; r <= rowsl / 2; r++) {
-                idx1 = r * twon2;
-                idx4 = ((rowsl - r) % rowsl) * twon2;
-                for (long c = 0; c < twon2; c += 2) {
-                    idx2 = idx1 + c;
-                    idx3 = idx4 + (twon2 - c) % twon2;
-                    a.setDouble(idx3, a.getDouble(idx2));
-                    a.setDouble(idx3 + 1, -a.getDouble(idx2 + 1));
-                }
-            }
-        }
-        a.setDouble(columnsl, -a.getDouble(1));
-        a.setDouble(1, 0);
-        idx1 = n1d2 * twon2;
-        a.setDouble(idx1 + columnsl, -a.getDouble(idx1 + 1));
-        a.setDouble(idx1 + 1, 0);
-        a.setDouble(idx1 + columnsl + 1, 0);
-    }
-
-    private void fillSymmetric(final double[][] a)
-    {
+    private void fillSymmetric(final double[][] a) {
         final int newn2 = 2 * columns;
         int n1d2 = rows / 2;
 
@@ -4131,10 +2548,8 @@ public class DoubleFFT_2D
                 } else {
                     l2stopa = i * l1k + l1k;
                 }
-                futures[i] = ConcurrencyUtils.submit(new Runnable()
-                {
-                    public void run()
-                    {
+                futures[i] = ConcurrencyUtils.submit(new Runnable() {
+                    public void run() {
                         int idx1, idx2;
                         for (int r = l1offa; r < l1stopa; r++) {
                             idx1 = rows - r;
@@ -4163,9 +2578,7 @@ public class DoubleFFT_2D
             }
             try {
                 ConcurrencyUtils.waitForCompletion(futures);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DoubleFFT_2D.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {

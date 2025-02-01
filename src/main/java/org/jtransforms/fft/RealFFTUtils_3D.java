@@ -2,12 +2,12 @@
  * JTransforms
  * Copyright (c) 2007 onward, Piotr Wendykier
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer. 
+ *    list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
@@ -27,9 +27,7 @@
 package org.jtransforms.fft;
 
 // @formatter:off
-import pl.edu.icm.jlargearrays.DoubleLargeArray;
-import pl.edu.icm.jlargearrays.FloatLargeArray;
-import static org.apache.commons.math3.util.FastMath.*;
+import static org.apache.commons.math3.util.FastMath.abs;
 
 /**
  *
@@ -38,10 +36,8 @@ import static org.apache.commons.math3.util.FastMath.*;
  * namely
  * <ul>
  * <li>{@link DoubleFFT_3D#realForward(double[])}</li>
- * <li>{@link DoubleFFT_3D#realForward(DoubleLargeArray)}</li>
  * <li>{@link DoubleFFT_3D#realForward(double[][][])}</li>
  * <li>{@link FloatFFT_3D#realForward(float[])}</li>
- * <li>{@link FloatFFT_3D#realForward(FloatLargeArray)}</li>
  * <li>{@link FloatFFT_3D#realForward(float[][][])}</li>
  * </ul>
  * are implemented to handle this case specifically. However, packing of the
@@ -95,8 +91,7 @@ import static org.apache.commons.math3.util.FastMath.*;
  * @author S&eacute;bastien Brisard
  */
 // @formatter:on
-public class RealFFTUtils_3D
-{
+public class RealFFTUtils_3D {
 
     /**
      * The constant <code>int</code> value of 1.
@@ -114,29 +109,9 @@ public class RealFFTUtils_3D
     private static final int ZERO = 0;
 
     /**
-     * The constant <code>int</code> value of 1.
-     */
-    private static final long ONEL = 1;
-
-    /**
-     * The constant <code>int</code> value of 2.
-     */
-    private static final long TWOL = 2;
-
-    /**
-     * The constant <code>int</code> value of 0.
-     */
-    private static final long ZEROL = 0;
-
-    /**
      * The size of the data in the third direction.
      */
     private final int columns;
-
-    /**
-     * The size of the data in the third direction.
-     */
-    private final long columnsl;
 
     /**
      * The size of the data in the second direction.
@@ -144,19 +119,9 @@ public class RealFFTUtils_3D
     private final int rows;
 
     /**
-     * The size of the data in the second direction.
-     */
-    private final long rowsl;
-
-    /**
      * The constant value of <code>2 * columns</code>.
      */
     private final int rowStride;
-
-    /**
-     * The constant value of <code>2 * columns</code>.
-     */
-    private final long rowStridel;
 
     /**
      * The size of the data in the first direction.
@@ -164,47 +129,27 @@ public class RealFFTUtils_3D
     private final int slices;
 
     /**
-     * The size of the data in the first direction.
-     */
-    private final long slicesl;
-
-    /**
      * The constant value of <code>2 * rows * columns</code>.
      */
     private final int sliceStride;
 
     /**
-     * The constant value of <code>2 * rows * columns</code>.
-     */
-    private final long sliceStridel;
-
-    /**
      * Creates a new instance of this class. The size of the underlying
      * {@link DoubleFFT_3D} or {@link FloatFFT_3D} must be specified.
-     *  
-     * @param slices
-     *                number of slices
-     * @param rows
-     *                number of rows
-     * @param columns
-     *                number of columns
+     *
+     * @param slices  number of slices
+     * @param rows    number of rows
+     * @param columns number of columns
      */
-    public RealFFTUtils_3D(final long slices, final long rows, final long columns)
-    {
+    public RealFFTUtils_3D(final long slices, final long rows, final long columns) {
         this.slices = (int) slices;
         this.rows = (int) rows;
         this.columns = (int) columns;
         this.rowStride = (int) columns;
-        this.sliceStride = (int) rows * (int) this.rowStride;
-        this.slicesl = slices;
-        this.rowsl = rows;
-        this.columnsl = columns;
-        this.rowStridel = columns;
-        this.sliceStridel = rows * this.rowStridel;
+        this.sliceStride = (int) rows * this.rowStride;
     }
 
     /**
-     *
      * Returns the 1d index of the specified 3d Fourier mode. In other words, if
      * <code>packed</code> contains the transformed data following a call to
      * {@link DoubleFFT_3D#realForwardFull(double[])} or
@@ -219,18 +164,13 @@ public class RealFFTUtils_3D
      * <li>if <code>index &lt; 0</code>, then the Fourier mode is
      * <code>-packed[-index]</code>,</li>
      * </ul>
-     *  
-     * @param s
-     *          the slice index
-     * @param r
-     *          the row index
-     * @param c
-     *          the column index
-     *  
+     *
+     * @param s the slice index
+     * @param r the row index
+     * @param c the column index
      * @return the value of <code>index</code>
      */
-    public int getIndex(final int s, final int r, final int c)
-    {
+    public int getIndex(final int s, final int r, final int c) {
         final int cmod2 = c & ONE;
         final int rmul2 = r << ONE;
         final int smul2 = s << ONE;
@@ -305,126 +245,18 @@ public class RealFFTUtils_3D
     }
 
     /**
-     *
-     * Returns the 1d index of the specified 3d Fourier mode. In other words, if
-     * <code>packed</code> contains the transformed data following a call to
-     * {@link DoubleFFT_3D#realForwardFull(double[])} or
-     * {@link FloatFFT_3D#realForward(float[])}, then the returned value
-     * <code>index</code> gives access to the <code>[s][r][c]</code> Fourier
-     * mode
-     * <ul>
-     * <li>if <code>index == {@link Integer#MIN_VALUE}</code>, then the Fourier
-     * mode is zero,</li>
-     * <li>if <code>index &ge; 0</code>, then the Fourier mode is
-     * <code>packed[index]</code>,</li>
-     * <li>if <code>index &lt; 0</code>, then the Fourier mode is
-     * <code>-packed[-index]</code>,</li>
-     * </ul>
-     *  
-     * @param s
-     *          the slice index
-     * @param r
-     *          the row index
-     * @param c
-     *          the column index
-     *  
-     * @return the value of <code>index</code>
-     */
-    public long getIndex(final long s, final long r, final long c)
-    {
-        final long cmod2 = c & ONEL;
-        final long rmul2 = r << ONEL;
-        final long smul2 = s << ONEL;
-        final long ss = s == ZEROL ? ZEROL : slicesl - s;
-        final long rr = r == ZEROL ? ZEROL : rowsl - r;
-        if (c <= ONEL) {
-            if (r == ZEROL) {
-                if (s == ZEROL) {
-                    return c == ZEROL ? ZEROL : Long.MIN_VALUE;
-                } else if (smul2 < slicesl) {
-                    return s * sliceStridel + c;
-                } else if (smul2 > slicesl) {
-                    final long index = ss * sliceStridel;
-                    return cmod2 == ZEROL ? index : -(index + ONEL);
-                } else {
-                    return cmod2 == ZEROL ? s * sliceStridel : Long.MIN_VALUE;
-                }
-            } else if (rmul2 < rowsl) {
-                return s * sliceStridel + r * rowStridel + c;
-            } else if (rmul2 > rowsl) {
-                final long index = ss * sliceStridel + rr * rowStridel;
-                return cmod2 == ZEROL ? index : -(index + ONEL);
-            } else if (s == ZEROL) {
-                return cmod2 == ZEROL ? r * rowStridel : Long.MIN_VALUE;
-            } else if (smul2 < slicesl) {
-                return s * sliceStridel + r * rowStridel + c;
-            } else if (smul2 > slicesl) {
-                final long index = ss * sliceStridel + r * rowStridel;
-                return cmod2 == ZEROL ? index : -(index + ONEL);
-            } else {
-                final long index = s * sliceStridel + r * rowStridel;
-                return cmod2 == ZEROL ? index : Long.MIN_VALUE;
-            }
-        } else if (c < columnsl) {
-            return s * sliceStridel + r * rowStridel + c;
-        } else if (c > columnsl + ONEL) {
-            final long cc = (columnsl << ONEL) - c;
-            final long index = ss * sliceStridel + rr * rowStridel + cc;
-            return cmod2 == ZEROL ? index : -(index + TWO);
-        } else if (r == ZEROL) {
-            if (s == ZEROL) {
-                return cmod2 == ZEROL ? ONEL : Long.MIN_VALUE;
-            } else if (smul2 < slicesl) {
-                final long index = ss * sliceStridel;
-                return cmod2 == ZEROL ? index + ONEL : -index;
-            } else if (smul2 > slicesl) {
-                final long index = s * sliceStridel;
-                return cmod2 == ZEROL ? index + ONEL : index;
-            } else {
-                final long index = s * sliceStridel;
-                return cmod2 == ZEROL ? index + ONEL : Long.MIN_VALUE;
-            }
-        } else if (rmul2 < rowsl) {
-            final long index = ss * sliceStridel + rr * rowStridel;
-            return cmod2 == ZEROL ? index + ONEL : -index;
-        } else if (rmul2 > rowsl) {
-            final long index = s * sliceStridel + r * rowStridel;
-            return cmod2 == ZEROL ? index + ONEL : index;
-        } else if (s == ZEROL) {
-            final long index = r * rowStridel + ONEL;
-            return cmod2 == ZEROL ? index : Long.MIN_VALUE;
-        } else if (smul2 < slicesl) {
-            final long index = ss * sliceStridel + r * rowStridel;
-            return cmod2 == ZEROL ? index + ONEL : -index;
-        } else if (smul2 > slicesl) {
-            final long index = s * sliceStridel + r * rowStridel;
-            return cmod2 == ZEROL ? index + ONEL : index;
-        } else {
-            final long index = s * sliceStridel + r * rowStridel;
-            return cmod2 == ZEROL ? index + ONEL : Long.MIN_VALUE;
-        }
-    }
-
-    /**
      * Sets the specified Fourier mode of the transformed data. The data array
      * results from a call to {@link DoubleFFT_3D#realForward(double[])}.
-     *  
-     * @param val
-     *               the new value of the <code>[s][r][c]</code> Fourier mode
-     * @param s
-     *               the slice index
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
+     *
+     * @param val    the new value of the <code>[s][r][c]</code> Fourier mode
+     * @param s      the slice index
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
+     * @param pos    index of the first element in array <code>packed</code>
      */
     public void pack(final double val, final int s, final int r, final int c,
-                     final double[] packed, final int pos)
-    {
+                     final double[] packed, final int pos) {
         final int i = getIndex(s, r, c);
         if (i >= 0) {
             packed[pos + i] = val;
@@ -432,61 +264,23 @@ public class RealFFTUtils_3D
             packed[pos - i] = -val;
         } else {
             throw new IllegalArgumentException(String.format(
-                "[%d][%d][%d] component cannot be modified (always zero)",
-                s, r, c));
-        }
-    }
-
-    /**
-     * Sets the specified Fourier mode of the transformed data. The data array
-     * results from a call to {@link DoubleFFT_3D#realForward(DoubleLargeArray)}.
-     *  
-     * @param val
-     *               the new value of the <code>[s][r][c]</code> Fourier mode
-     * @param s
-     *               the slice index
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
-     */
-    public void pack(final double val, final long s, final long r, final long c,
-                     final DoubleLargeArray packed, final long pos)
-    {
-        final long i = getIndex(s, r, c);
-        if (i >= 0) {
-            packed.setDouble(pos + i, val);
-        } else if (i > Long.MIN_VALUE) {
-            packed.setDouble(pos - i, -val);
-        } else {
-            throw new IllegalArgumentException(String.format(
-                "[%d][%d][%d] component cannot be modified (always zero)",
-                s, r, c));
+                    "[%d][%d][%d] component cannot be modified (always zero)",
+                    s, r, c));
         }
     }
 
     /**
      * Sets the specified Fourier mode of the transformed data. The data array
      * results from a call to {@link DoubleFFT_3D#realForward(double[][][])}.
-     *  
-     * @param val
-     *               the new value of the <code>[s][r][c]</code> Fourier mode
-     * @param s
-     *               the slice index
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
+     *
+     * @param val    the new value of the <code>[s][r][c]</code> Fourier mode
+     * @param s      the slice index
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
      */
     public void pack(final double val, final int s, final int r, final int c,
-                     final double[][][] packed)
-    {
+                     final double[][][] packed) {
         final int i = getIndex(s, r, c);
         final int ii = abs(i);
         final int ss = ii / sliceStride;
@@ -499,32 +293,25 @@ public class RealFFTUtils_3D
             packed[ss][rr][cc] = -val;
         } else {
             throw new IllegalArgumentException(
-                String.format(
-                    "[%d][%d] component cannot be modified (always zero)",
-                    r, c));
+                    String.format(
+                            "[%d][%d] component cannot be modified (always zero)",
+                            r, c));
         }
     }
 
     /**
      * Sets the specified Fourier mode of the transformed data. The data array
      * results from a call to {@link FloatFFT_3D#realForward(float[])}.
-     *  
-     * @param val
-     *               the new value of the <code>[s][r][c]</code> Fourier mode
-     * @param s
-     *               the slice index
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
+     *
+     * @param val    the new value of the <code>[s][r][c]</code> Fourier mode
+     * @param s      the slice index
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
+     * @param pos    index of the first element in array <code>packed</code>
      */
     public void pack(final float val, final int s, final int r, final int c,
-                     final float[] packed, final int pos)
-    {
+                     final float[] packed, final int pos) {
         final int i = getIndex(s, r, c);
         if (i >= 0) {
             packed[pos + i] = val;
@@ -532,61 +319,23 @@ public class RealFFTUtils_3D
             packed[pos - i] = -val;
         } else {
             throw new IllegalArgumentException(String.format(
-                "[%d][%d][%d] component cannot be modified (always zero)",
-                s, r, c));
-        }
-    }
-
-    /**
-     * Sets the specified Fourier mode of the transformed data. The data array
-     * results from a call to {@link FloatFFT_3D#realForward(FloatLargeArray)}.
-     *  
-     * @param val
-     *               the new value of the <code>[s][r][c]</code> Fourier mode
-     * @param s
-     *               the slice index
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
-     */
-    public void pack(final float val, final long s, final long r, final long c,
-                     final FloatLargeArray packed, final long pos)
-    {
-        final long i = getIndex(s, r, c);
-        if (i >= 0) {
-            packed.setFloat(pos + i, val);
-        } else if (i > Long.MIN_VALUE) {
-            packed.setFloat(pos - i, -val);
-        } else {
-            throw new IllegalArgumentException(String.format(
-                "[%d][%d][%d] component cannot be modified (always zero)",
-                s, r, c));
+                    "[%d][%d][%d] component cannot be modified (always zero)",
+                    s, r, c));
         }
     }
 
     /**
      * Sets the specified Fourier mode of the transformed data. The data array
      * results from a call to {@link FloatFFT_3D#realForward(float[][][])}.
-     *  
-     * @param val
-     *               the new value of the <code>[s][r][c]</code> Fourier mode
-     * @param s
-     *               the slice index
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
+     *
+     * @param val    the new value of the <code>[s][r][c]</code> Fourier mode
+     * @param s      the slice index
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
      */
     public void pack(final float val, final int s, final int r, final int c,
-                     final float[][][] packed)
-    {
+                     final float[][][] packed) {
         final int i = getIndex(s, r, c);
         final int ii = abs(i);
         final int ss = ii / sliceStride;
@@ -599,31 +348,24 @@ public class RealFFTUtils_3D
             packed[ss][rr][cc] = -val;
         } else {
             throw new IllegalArgumentException(String.format(
-                "[%d][%d][%d] component cannot be modified (always zero)",
-                s, r, c));
+                    "[%d][%d][%d] component cannot be modified (always zero)",
+                    s, r, c));
         }
     }
 
     /**
      * Returns the specified Fourier mode of the transformed data. The data
      * array results from a call to {@link DoubleFFT_3D#realForward(double[])}.
-     *  
-     * @param s
-     *               the slice index
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
-     *  
+     *
+     * @param s      the slice index
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
+     * @param pos    index of the first element in array <code>packed</code>
      * @return the value of the <code>[s][r][c]</code> Fourier mode
      */
     public double unpack(final int s, final int r, final int c,
-                         final double[] packed, final int pos)
-    {
+                         final double[] packed, final int pos) {
         final int i = getIndex(s, r, c);
         if (i >= 0) {
             return packed[pos + i];
@@ -636,53 +378,17 @@ public class RealFFTUtils_3D
 
     /**
      * Returns the specified Fourier mode of the transformed data. The data
-     * array results from a call to {@link DoubleFFT_3D#realForward(DoubleLargeArray)}.
-     *  
-     * @param s
-     *               the slice index
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
-     *  
-     * @return the value of the <code>[s][r][c]</code> Fourier mode
-     */
-    public double unpack(final long s, final long r, final long c,
-                         final DoubleLargeArray packed, final long pos)
-    {
-        final long i = getIndex(s, r, c);
-        if (i >= 0) {
-            return packed.getDouble(pos + i);
-        } else if (i > Long.MIN_VALUE) {
-            return -packed.getDouble(pos - i);
-        } else {
-            return ZEROL;
-        }
-    }
-
-    /**
-     * Returns the specified Fourier mode of the transformed data. The data
      * array results from a call to
      * {@link DoubleFFT_3D#realForward(double[][][])} .
-     *  
-     * @param s
-     *               the slice index
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     *  
+     *
+     * @param s      the slice index
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
      * @return the value of the <code>[s][r][c]</code> Fourier mode
      */
     public double unpack(final int s, final int r, final int c,
-                         final double[][][] packed)
-    {
+                         final double[][][] packed) {
         final int i = getIndex(s, r, c);
         final int ii = abs(i);
         final int ss = ii / sliceStride;
@@ -701,23 +407,16 @@ public class RealFFTUtils_3D
     /**
      * Returns the specified Fourier mode of the transformed data. The data
      * array results from a call to {@link FloatFFT_3D#realForward(float[])} .
-     *  
-     * @param s
-     *               the slice index
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
-     *  
+     *
+     * @param s      the slice index
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
+     * @param pos    index of the first element in array <code>packed</code>
      * @return the value of the <code>[s][r][c]</code> Fourier mode
      */
     public float unpack(final int s, final int r, final int c,
-                        final float[] packed, final int pos)
-    {
+                        final float[] packed, final int pos) {
         final int i = getIndex(s, r, c);
         if (i >= 0) {
             return packed[pos + i];
@@ -730,53 +429,17 @@ public class RealFFTUtils_3D
 
     /**
      * Returns the specified Fourier mode of the transformed data. The data
-     * array results from a call to {@link FloatFFT_3D#realForward(FloatLargeArray)} .
-     *  
-     * @param s
-     *               the slice index
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     * @param pos
-     *               index of the first element in array <code>packed</code>
-     *  
-     * @return the value of the <code>[s][r][c]</code> Fourier mode
-     */
-    public float unpack(final long s, final long r, final long c,
-                        final FloatLargeArray packed, final long pos)
-    {
-        final long i = getIndex(s, r, c);
-        if (i >= 0) {
-            return packed.getFloat(pos + i);
-        } else if (i > Long.MIN_VALUE) {
-            return -packed.getFloat(pos - i);
-        } else {
-            return ZEROL;
-        }
-    }
-
-    /**
-     * Returns the specified Fourier mode of the transformed data. The data
      * array results from a call to {@link FloatFFT_3D#realForward(float[][][])}
      * .
-     *  
-     * @param s
-     *               the slice index
-     * @param r
-     *               the row index
-     * @param c
-     *               the column index
-     * @param packed
-     *               the transformed data
-     *  
+     *
+     * @param s      the slice index
+     * @param r      the row index
+     * @param c      the column index
+     * @param packed the transformed data
      * @return the value of the <code>[s][r][c]</code> Fourier mode
      */
     public float unpack(final int s, final int r, final int c,
-                        final float[][][] packed)
-    {
+                        final float[][][] packed) {
         final int i = getIndex(s, r, c);
         final int ii = abs(i);
         final int ss = ii / sliceStride;
